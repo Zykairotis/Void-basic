@@ -1,0 +1,232 @@
+{
+  "system": {
+    "version": "1.0.0",
+    "environment": "development",
+    "debug_mode": false,
+    "log_level": "INFO",
+    "project_name": "My Aider Project",
+    "description": "Example configuration for Aider Multi-Agent Hive Architecture"
+  },
+  "agents": {
+    "orchestrator": {
+      "enabled": true,
+      "instances": 1,
+      "auto_scaling": {
+        "enabled": false,
+        "min_instances": 1,
+        "max_instances": 2,
+        "target_cpu": 80.0
+      },
+      "configuration": {
+        "max_concurrent_workflows": 5,
+        "default_timeout": 300.0,
+        "analysis_timeout": 30.0,
+        "request_timeout": 600.0
+      }
+    },
+    "code": {
+      "enabled": true,
+      "instances": 1,
+      "auto_scaling": {
+        "enabled": true,
+        "min_instances": 1,
+        "max_instances": 3,
+        "target_cpu": 80.0
+      },
+      "configuration": {
+        "max_file_size": 1048576,
+        "generation_timeout": 120.0,
+        "enable_testing": true,
+        "enable_validation": true,
+        "supported_languages": [
+          "python",
+          "javascript",
+          "typescript",
+          "java",
+          "cpp",
+          "go",
+          "rust"
+        ],
+        "quality_thresholds": {
+          "complexity_max": 10,
+          "function_length_max": 50,
+          "line_length_max": 120,
+          "maintainability_min": 70
+        }
+      }
+    },
+    "context": {
+      "enabled": true,
+      "instances": 1,
+      "auto_scaling": {
+        "enabled": false,
+        "min_instances": 1,
+        "max_instances": 2,
+        "target_cpu": 70.0
+      },
+      "configuration": {
+        "max_context_entries": 10000,
+        "context_ttl": 3600,
+        "enable_semantic_search": true,
+        "enable_caching": true,
+        "auto_update_interval": 300,
+        "cache_ttl": 300,
+        "ignore_patterns": [
+          ".git",
+          "__pycache__",
+          "node_modules",
+          ".venv",
+          ".env"
+        ]
+      }
+    },
+    "git": {
+      "enabled": true,
+      "instances": 1,
+      "auto_scaling": {
+        "enabled": false,
+        "min_instances": 1,
+        "max_instances": 2,
+        "target_cpu": 60.0
+      },
+      "configuration": {
+        "auto_stage_changes": true,
+        "commit_message_style": "conventional",
+        "max_commit_message_length": 72,
+        "enable_conflict_resolution": true,
+        "default_branch": "main",
+        "git_timeout": 30.0
+      }
+    }
+  },
+  "messaging": {
+    "backend": "memory",
+    "max_queue_size": 1000,
+    "message_ttl": 300,
+    "compression": false,
+    "encryption": false,
+    "retry_attempts": 3,
+    "retry_delay": 1.0,
+    "batch_size": 10,
+    "delivery_timeout": 30.0
+  },
+  "context": {
+    "storage_backend": "memory",
+    "max_memory_entries": 10000,
+    "vector_dimension": 384,
+    "enable_compression": false,
+    "cache_ttl": 300,
+    "persistence": {
+      "enabled": false,
+      "file_path": "./context_store.db",
+      "backup_interval": 3600
+    }
+  },
+  "performance": {
+    "monitoring_enabled": true,
+    "metrics_interval": 60,
+    "health_check_interval": 30,
+    "profiling_enabled": false,
+    "memory_monitoring": true,
+    "cpu_monitoring": true,
+    "performance_targets": {
+      "agent_startup_time": 5.0,
+      "message_latency": 0.1,
+      "context_retrieval": 0.5,
+      "task_throughput": 10.0,
+      "response_time_p95": 2.0
+    },
+    "alerts": {
+      "enabled": true,
+      "error_rate_threshold": 5.0,
+      "response_time_threshold": 5.0,
+      "memory_usage_threshold": 90.0,
+      "cpu_usage_threshold": 85.0
+    }
+  },
+  "security": {
+    "enable_authentication": false,
+    "api_key_required": false,
+    "rate_limiting": {
+      "enabled": true,
+      "requests_per_minute": 60,
+      "burst_limit": 10
+    },
+    "allowed_hosts": ["localhost", "127.0.0.1"],
+    "cors_enabled": true
+  },
+  "features": {
+    "web_interface": {
+      "enabled": false,
+      "port": 8080,
+      "host": "localhost"
+    },
+    "api_server": {
+      "enabled": false,
+      "port": 8081,
+      "host": "localhost"
+    },
+    "real_time_updates": {
+      "enabled": true,
+      "websocket_port": 8082
+    },
+    "documentation_generation": {
+      "enabled": true,
+      "auto_update": true
+    }
+  },
+  "integrations": {
+    "llm_providers": {
+      "openai": {
+        "enabled": true,
+        "api_key_env": "OPENAI_API_KEY",
+        "default_model": "gpt-4",
+        "timeout": 30.0
+      },
+      "anthropic": {
+        "enabled": false,
+        "api_key_env": "ANTHROPIC_API_KEY",
+        "default_model": "claude-3-sonnet"
+      }
+    },
+    "version_control": {
+      "git": {
+        "enabled": true,
+        "auto_commit": false,
+        "commit_template": "{type}({scope}): {description}"
+      }
+    },
+    "code_quality": {
+      "linting": {
+        "enabled": true,
+        "tools": ["flake8", "eslint", "pylint"]
+      },
+      "testing": {
+        "enabled": true,
+        "auto_run": false
+      }
+    }
+  },
+  "logging": {
+    "level": "INFO",
+    "format": "structured",
+    "output": "console",
+    "file_logging": {
+      "enabled": false,
+      "file_path": "./logs/hive.log",
+      "max_size_mb": 100,
+      "backup_count": 5
+    },
+    "request_logging": {
+      "enabled": true,
+      "include_request_body": false,
+      "include_response_body": false
+    }
+  },
+  "development": {
+    "hot_reload": false,
+    "debug_endpoints": false,
+    "mock_llm_responses": false,
+    "test_mode": false
+  }
+}

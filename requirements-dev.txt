@@ -1,0 +1,68 @@
+# Development Dependencies for Aider Multi-Agent Hive Architecture
+# Install with: pip install -r requirements-dev.txt
+
+# Core Testing Framework
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+pytest-cov>=4.1.0
+pytest-mock>=3.11.0
+pytest-timeout>=2.1.0
+
+# Retry Logic for AI API Calls
+tenacity>=8.2.0
+
+# Code Quality and Formatting
+black>=23.7.0
+isort>=5.12.0
+flake8>=6.0.0
+mypy>=1.5.0
+pre-commit>=3.3.0
+
+# Type Checking and Stubs
+types-requests>=2.31.0
+types-PyYAML>=6.0.0
+
+# Development Utilities
+ipython>=8.14.0
+ipdb>=0.13.0
+watchdog>=3.0.0
+
+# Documentation
+sphinx>=7.1.0
+sphinx-rtd-theme>=1.3.0
+
+# Performance and Profiling
+memory-profiler>=0.61.0
+line-profiler>=4.1.0
+
+# Environment Management
+python-dotenv>=1.0.0
+
+# HTTP Testing
+httpx>=0.24.0
+responses>=0.23.0
+
+# Async Testing Utilities
+aioresponses>=0.7.4
+
+# Load Testing (for performance benchmarks)
+locust>=2.15.0
+
+# Code Security Scanning
+bandit>=1.7.5
+safety>=2.3.0
+
+# Import Sorting and Code Organization
+autoflake>=2.2.0
+autopep8>=2.0.0
+
+# Jupyter Notebook Support (for experimentation)
+jupyter>=1.0.0
+notebook>=7.0.0
+
+# API Documentation
+openapi-spec-validator>=0.6.0
+swagger-ui-bundle>=0.0.9
+
+# Monitoring and Metrics (development)
+prometheus-client>=0.17.0

@@ -39,6 +39,14 @@ from aider.watch import FileWatcher
 
 from .dump import dump  # noqa: F401
 
+# Hive system imports
+try:
+    from .cli.hive_cli import main as hive_main
+    HIVE_AVAILABLE = True
+except ImportError:
+    HIVE_AVAILABLE = False
+    hive_main = None
+
 
 def check_config_files_for_yes(config_files):
     found = False
@@ -453,6 +461,21 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
 
     if argv is None:
         argv = sys.argv[1:]
+
+    # Check for hive mode commands
+    if argv and HIVE_AVAILABLE:
+        hive_commands = [
+            'start', 'stop', 'request', 'status', 'health', 'metrics',
+            'agent', 'interactive', 'config'
+        ]
+        if argv[0] in hive_commands or (argv[0] == '--hive' or argv[0] == '--multi-agent'):
+            # Remove --hive flag if present and delegate to hive CLI
+            if argv[0] in ['--hive', '--multi-agent']:
+                argv = argv[1:]
+            return hive_main(argv)
+        elif argv[0] == '--help' and len(argv) > 1 and argv[1] in hive_commands:
+            # Help for hive commands
+            return hive_main(argv)
 
     if git is None:
         git_root = None
