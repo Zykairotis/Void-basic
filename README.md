@@ -111,15 +111,46 @@ We've successfully built and deployed a fully functional **multi-agent AI coding
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-org/aider-hive.git
-cd aider-hive
+git clone https://github.com/Zykairotis/Void-basic.git
+cd Void-basic
 
 # Install dependencies
 pip install -r requirements.txt
 
+# Set up environment variables
+cp .env.example .env
+# Edit .env with your API keys (see Security section below)
+
 # Verify installation
 python -m aider.cli.hive_cli health
 ```
+
+### **Environment Setup & Security**
+
+⚠️ **Important**: This project uses API keys for AI model integration. Follow these security best practices:
+
+1. **Copy the example environment file**:
+   ```bash
+   cp .env.example .env
+   ```
+
+2. **Add your API keys to `.env`** (never commit this file):
+   ```bash
+   # Edit .env with your actual keys
+   XAI_API_KEY=your_xai_api_key_here
+   OPENAI_API_KEY=your_openai_api_key_here
+   ANTHROPIC_API_KEY=your_anthropic_api_key_here
+   ```
+
+3. **Verify `.env` is in `.gitignore`** (should be already configured):
+   ```bash
+   grep .env .gitignore
+   ```
+
+4. **Test your setup**:
+   ```bash
+   python test_model_integration.py
+   ```
 
 ### **Basic Usage**
 
@@ -255,13 +286,64 @@ python test_agent_implementations.py
 
 ---
 
+## 🔒 Security & Environment Configuration
+
+### **API Key Management**
+
+This project integrates with multiple AI providers and requires API keys for full functionality. We've implemented comprehensive security measures to protect your credentials:
+
+#### **Supported AI Providers**
+- **xAI Grok**: For advanced reasoning and code generation
+- **OpenAI GPT**: For general-purpose AI tasks
+- **Anthropic Claude**: For complex analysis and writing
+
+#### **Security Features**
+- ✅ **Git Protection**: `.env` files are automatically excluded from commits
+- ✅ **Secret Scanning**: GitHub push protection prevents accidental key exposure
+- ✅ **Environment Templates**: `.env.example` provides safe configuration templates
+- ✅ **Key Rotation**: Support for multiple API keys with fallback mechanisms
+
+#### **Setup Instructions**
+```bash
+# 1. Copy the environment template
+cp .env.example .env
+
+# 2. Add your API keys (replace with actual keys)
+XAI_API_KEY=xai-your-actual-key-here
+OPENAI_API_KEY=sk-your-actual-key-here
+ANTHROPIC_API_KEY=sk-ant-your-actual-key-here
+
+# 3. Verify security configuration
+grep .env .gitignore  # Should show .env files are ignored
+```
+
+#### **Security Best Practices**
+- 🔐 **Never commit `.env` files** - They're automatically ignored
+- 🔐 **Use different keys for development/production**
+- 🔐 **Rotate keys regularly** - Especially if exposed
+- 🔐 **Monitor usage** - Check API provider dashboards
+- 🔐 **Use environment variables** - For production deployments
+
+#### **Troubleshooting Security Issues**
+```bash
+# Check if .env is properly ignored
+git status  # Should not show .env
+
+# Verify environment variables are loaded
+python -c "import os; print('XAI_API_KEY:', 'SET' if os.getenv('XAI_API_KEY') else 'NOT SET')"
+
+# Test API connectivity
+python test_model_integration.py
+```
+
+---
+
 ## 📖 Documentation
 
 - [**Phase 1 Implementation Complete**](PHASE_1_IMPLEMENTATION_COMPLETE.md) - Detailed completion report
 - [**Phase 2 Roadmap**](PHASE_2_ROADMAP.md) - Next development phase plan
-- [**Architecture Guide**](docs/architecture.md) - System design documentation
-- [**API Reference**](docs/api.md) - Complete API documentation
-- [**Development Guide**](docs/development.md) - Contributing guidelines
+- [**Contributing Guide**](CONTRIBUTING.md) - Development and contribution guidelines
+- [**Security Best Practices**](#security--environment-configuration) - API key management and security
 
 ---
 
