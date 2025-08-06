@@ -1,0 +1,727 @@
+# Void-basic Phase 3.0 - Production Kubernetes Deployment
+# Enterprise multi-tenant autonomous development platform
+#
+# This manifest includes:
+# - Namespace isolation
+# - Multi-component deployment (Backend, Frontend, Agents, Database, Redis)
+# - Security contexts and network policies
+# - Auto-scaling configurations
+# - Monitoring integration
+# - Ingress with TLS
+# - ConfigMaps and Secrets management
+
+---
+# Namespace for application isolation
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: voidbasic-enterprise
+  labels:
+    name: voidbasic-enterprise
+    environment: production
+    version: "3.0.0"
+  annotations:
+    description: "Void-basic Enterprise Platform - Phase 3.0"
+
+---
+# NetworkPolicy for security isolation
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: voidbasic-network-policy
+  namespace: voidbasic-enterprise
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: voidbasic-enterprise
+    - namespaceSelector:
+        matchLabels:
+          name: istio-system
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: voidbasic-enterprise
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 53
+    - protocol: UDP
+      port: 53
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 443
+    - protocol: TCP
+      port: 80
+
+---
+# ConfigMap for application configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: voidbasic-config
+  namespace: voidbasic-enterprise
+data:
+  # Database configuration
+  DATABASE_HOST: "postgres-service"
+  DATABASE_PORT: "5432"
+  DATABASE_NAME: "voidbasic_enterprise"
+
+  # Redis configuration
+  REDIS_HOST: "redis-service"
+  REDIS_PORT: "6379"
+
+  # Application configuration
+  ENVIRONMENT: "production"
+  LOG_LEVEL: "INFO"
+
+  # AI Model configuration
+  AI_MODEL_FALLBACK_ENABLED: "true"
+  AI_MODEL_RATE_LIMIT_ENABLED: "true"
+
+  # Enterprise features
+  MULTI_TENANT_ENABLED: "true"
+  COMPLIANCE_AUTOMATION_ENABLED: "true"
+  AUDIT_LOGGING_ENABLED: "true"
+
+  # Monitoring
+  PROMETHEUS_ENABLED: "true"
+  METRICS_PORT: "9090"
+
+---
+# Secret for sensitive configuration
+apiVersion: v1
+kind: Secret
+metadata:
+  name: voidbasic-secrets
+  namespace: voidbasic-enterprise
+type: Opaque
+data:
+  # Base64 encoded secrets (replace with actual values)
+  DATABASE_PASSWORD: cGFzc3dvcmQxMjM=  # password123
+  JWT_SECRET: c3VwZXItc2VjcmV0LWp3dC1rZXk=  # super-secret-jwt-key
+  MASTER_ENCRYPTION_KEY: bWFzdGVyLWVuY3J5cHRpb24ta2V5LTEyMw==  # master-encryption-key-123
+  OPENAI_API_KEY: c2stWW91ck9wZW5BSUFQSUtleUhlcmU=  # sk-YourOpenAIAPIKeyHere
+  ANTHROPIC_API_KEY: Y2xhdWRlLWFwaS1rZXktaGVyZQ==  # claude-api-key-here
+
+---
+# PostgreSQL Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-deployment
+  namespace: voidbasic-enterprise
+  labels:
+    app: postgres
+    component: database
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+        component: database
+    spec:
+      securityContext:
+        fsGroup: 999
+      containers:
+      - name: postgres
+        image: postgres:15-alpine
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_DB
+          valueFrom:
+            configMapKeyRef:
+              name: voidbasic-config
+              key: DATABASE_NAME
+        - name: POSTGRES_USER
+          value: "postgres"
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: voidbasic-secrets
+              key: DATABASE_PASSWORD
+        - name: PGDATA
+          value: /var/lib/postgresql/data/pgdata
+        volumeMounts:
+        - name: postgres-storage
+          mountPath: /var/lib/postgresql/data
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+        livenessProbe:
+          exec:
+            command: ["pg_isready", "-U", "postgres"]
+          initialDelaySeconds: 30
+          timeoutSeconds: 5
+        readinessProbe:
+          exec:
+            command: ["pg_isready", "-U", "postgres"]
+          initialDelaySeconds: 5
+          timeoutSeconds: 1
+      volumes:
+      - name: postgres-storage
+        persistentVolumeClaim:
+          claimName: postgres-pvc
+
+---
+# PostgreSQL PersistentVolumeClaim
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pvc
+  namespace: voidbasic-enterprise
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+  storageClassName: fast-ssd
+
+---
+# PostgreSQL Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-service
+  namespace: voidbasic-enterprise
+spec:
+  selector:
+    app: postgres
+  ports:
+    - protocol: TCP
+      port: 5432
+      targetPort: 5432
+  type: ClusterIP
+
+---
+# Redis Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-deployment
+  namespace: voidbasic-enterprise
+  labels:
+    app: redis
+    component: cache
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+        component: cache
+    spec:
+      containers:
+      - name: redis
+        image: redis:7-alpine
+        ports:
+        - containerPort: 6379
+        command: ["redis-server"]
+        args: ["--appendonly", "yes", "--maxmemory", "1gb", "--maxmemory-policy", "allkeys-lru"]
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        livenessProbe:
+          exec:
+            command: ["redis-cli", "ping"]
+          initialDelaySeconds: 30
+          timeoutSeconds: 5
+        readinessProbe:
+          exec:
+            command: ["redis-cli", "ping"]
+          initialDelaySeconds: 5
+          timeoutSeconds: 1
+        volumeMounts:
+        - name: redis-storage
+          mountPath: /data
+      volumes:
+      - name: redis-storage
+        persistentVolumeClaim:
+          claimName: redis-pvc
+
+---
+# Redis PersistentVolumeClaim
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: redis-pvc
+  namespace: voidbasic-enterprise
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: fast-ssd
+
+---
+# Redis Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-service
+  namespace: voidbasic-enterprise
+spec:
+  selector:
+    app: redis
+  ports:
+    - protocol: TCP
+      port: 6379
+      targetPort: 6379
+  type: ClusterIP
+
+---
+# FastAPI Backend Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-deployment
+  namespace: voidbasic-enterprise
+  labels:
+    app: voidbasic-backend
+    component: api
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: voidbasic-backend
+  template:
+    metadata:
+      labels:
+        app: voidbasic-backend
+        component: api
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+        prometheus.io/path: "/metrics"
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      containers:
+      - name: backend
+        image: voidbasic/enterprise-backend:3.0.0
+        ports:
+        - containerPort: 8000
+          name: http
+        - containerPort: 9090
+          name: metrics
+        env:
+        - name: DATABASE_URL
+          value: "postgresql://postgres:$(DATABASE_PASSWORD)@$(DATABASE_HOST):$(DATABASE_PORT)/$(DATABASE_NAME)"
+        - name: REDIS_URL
+          value: "redis://$(REDIS_HOST):$(REDIS_PORT)"
+        - name: DATABASE_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: voidbasic-config
+              key: DATABASE_HOST
+        - name: DATABASE_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: voidbasic-config
+              key: DATABASE_PORT
+        - name: DATABASE_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: voidbasic-config
+              key: DATABASE_NAME
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: voidbasic-secrets
+              key: DATABASE_PASSWORD
+        - name: REDIS_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: voidbasic-config
+              key: REDIS_HOST
+        - name: REDIS_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: voidbasic-config
+              key: REDIS_PORT
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: voidbasic-secrets
+              key: JWT_SECRET
+        - name: MASTER_ENCRYPTION_KEY
+          valueFrom:
+            secretKeyRef:
+              name: voidbasic-secrets
+              key: MASTER_ENCRYPTION_KEY
+        - name: OPENAI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: voidbasic-secrets
+              key: OPENAI_API_KEY
+        - name: ANTHROPIC_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: voidbasic-secrets
+              key: ANTHROPIC_API_KEY
+        - name: ENVIRONMENT
+          valueFrom:
+            configMapKeyRef:
+              name: voidbasic-config
+              key: ENVIRONMENT
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+          limits:
+            memory: "4Gi"
+            cpu: "2000m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          successThreshold: 1
+          failureThreshold: 3
+        securityContext:
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        volumeMounts:
+        - name: tmp-volume
+          mountPath: /tmp
+      volumes:
+      - name: tmp-volume
+        emptyDir: {}
+
+---
+# Backend Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service
+  namespace: voidbasic-enterprise
+  labels:
+    app: voidbasic-backend
+spec:
+  selector:
+    app: voidbasic-backend
+  ports:
+    - name: http
+      protocol: TCP
+      port: 8000
+      targetPort: 8000
+    - name: metrics
+      protocol: TCP
+      port: 9090
+      targetPort: 9090
+  type: ClusterIP
+
+---
+# React Frontend Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-deployment
+  namespace: voidbasic-enterprise
+  labels:
+    app: voidbasic-frontend
+    component: ui
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: voidbasic-frontend
+  template:
+    metadata:
+      labels:
+        app: voidbasic-frontend
+        component: ui
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      containers:
+      - name: frontend
+        image: voidbasic/enterprise-frontend:3.0.0
+        ports:
+        - containerPort: 3000
+        env:
+        - name: NEXT_PUBLIC_API_URL
+          value: "https://api.voidbasic.enterprise.com"
+        - name: NEXT_PUBLIC_WS_URL
+          value: "wss://api.voidbasic.enterprise.com"
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        securityContext:
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        volumeMounts:
+        - name: tmp-volume
+          mountPath: /tmp
+        - name: nextjs-cache
+          mountPath: /.next
+      volumes:
+      - name: tmp-volume
+        emptyDir: {}
+      - name: nextjs-cache
+        emptyDir: {}
+
+---
+# Frontend Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-service
+  namespace: voidbasic-enterprise
+spec:
+  selector:
+    app: voidbasic-frontend
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: 3000
+  type: ClusterIP
+
+---
+# Horizontal Pod Autoscaler for Backend
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: backend-hpa
+  namespace: voidbasic-enterprise
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: backend-deployment
+  minReplicas: 3
+  maxReplicas: 20
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 50
+        periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 15
+
+---
+# Horizontal Pod Autoscaler for Frontend
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: frontend-hpa
+  namespace: voidbasic-enterprise
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: frontend-deployment
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+
+---
+# Ingress for external access with TLS
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: voidbasic-ingress
+  namespace: voidbasic-enterprise
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "60"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "60"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "60"
+    nginx.ingress.kubernetes.io/websocket-services: "backend-service"
+    nginx.ingress.kubernetes.io/upstream-hash-by: "$binary_remote_addr"
+spec:
+  tls:
+  - hosts:
+    - voidbasic.enterprise.com
+    - api.voidbasic.enterprise.com
+    secretName: voidbasic-tls
+  rules:
+  - host: voidbasic.enterprise.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: frontend-service
+            port:
+              number: 3000
+  - host: api.voidbasic.enterprise.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: backend-service
+            port:
+              number: 8000
+
+---
+# ServiceMonitor for Prometheus monitoring
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: voidbasic-monitor
+  namespace: voidbasic-enterprise
+  labels:
+    app: voidbasic-backend
+spec:
+  selector:
+    matchLabels:
+      app: voidbasic-backend
+  endpoints:
+  - port: metrics
+    interval: 30s
+    path: /metrics
+
+---
+# PodDisruptionBudget for high availability
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: backend-pdb
+  namespace: voidbasic-enterprise
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: voidbasic-backend
+
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: frontend-pdb
+  namespace: voidbasic-enterprise
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: voidbasic-frontend
+
+---
+# RBAC for service accounts
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: voidbasic-service-account
+  namespace: voidbasic-enterprise
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: voidbasic-enterprise
+  name: voidbasic-role
+rules:
+- apiGroups: [""]
+  resources: ["pods", "services", "endpoints", "configmaps", "secrets"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["apps"]
+  resources: ["deployments", "replicasets"]
+  verbs: ["get", "list", "watch"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: voidbasic-rolebinding
+  namespace: voidbasic-enterprise
+subjects:
+- kind: ServiceAccount
+  name: voidbasic-service-account
+  namespace: voidbasic-enterprise
+roleRef:
+  kind: Role
+  name: voidbasic-role
+  apiGroup: rbac.authorization.k8s.io

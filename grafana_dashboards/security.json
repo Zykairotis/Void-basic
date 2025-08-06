@@ -1,0 +1,348 @@
+{
+  "id": null,
+  "uid": "phase3-security",
+  "title": "Phase 3.0 - Security Monitoring",
+  "tags": [
+    "phase3",
+    "security",
+    "monitoring"
+  ],
+  "style": "dark",
+  "timezone": "browser",
+  "panels": [
+    {
+      "id": 37,
+      "title": "Current Threat Level",
+      "type": "gauge",
+      "targets": [
+        {
+          "expr": "security_threat_level",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 6,
+        "h": 8
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 38,
+      "title": "Failed Auth (Last Hour)",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "sum(failed_auth_attempts[1h])",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "x": 6,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "palette-classic"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "displayMode": "list",
+            "placement": "bottom"
+          }
+        }
+      }
+    },
+    {
+      "id": 39,
+      "title": "Active Security Incidents",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "count(active_security_incidents)",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "displayMode": "list",
+            "placement": "bottom"
+          }
+        }
+      }
+    },
+    {
+      "id": 40,
+      "title": "Blocked Attacks (24h)",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "sum(blocked_attacks[24h])",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "x": 18,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "palette-classic"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "displayMode": "list",
+            "placement": "bottom"
+          }
+        }
+      }
+    },
+    {
+      "id": 41,
+      "title": "Security Events Over Time",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "rate(sql_injection_attempts[5m])",
+          "refId": "A"
+        },
+        {
+          "expr": "rate(xss_attempts[5m])",
+          "refId": "B"
+        },
+        {
+          "expr": "rate(brute_force_attempts[5m])",
+          "refId": "C"
+        },
+        {
+          "expr": "rate(unauthorized_access_attempts[5m])",
+          "refId": "D"
+        }
+      ],
+      "gridPos": {
+        "x": 6,
+        "y": 4,
+        "w": 18,
+        "h": 8
+      },
+      "options": {
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "spanNulls": false,
+            "insertNulls": false,
+            "showPoints": "auto",
+            "pointSize": 5
+          }
+        }
+      }
+    },
+    {
+      "id": 42,
+      "title": "Attack Origins (Geographic)",
+      "type": "grafana-worldmap-panel",
+      "targets": [
+        {
+          "expr": "sum(attack_attempts) by (country)",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 12,
+        "w": 12,
+        "h": 8
+      },
+      "worldmapOptions": {
+        "showTooltip": true,
+        "showLegend": true,
+        "defaultColor": "rgb(128, 128, 128)",
+        "thresholds": "0,10,20,30",
+        "colors": [
+          "rgba(245, 54, 54, 0.9)",
+          "rgba(237, 129, 40, 0.89)",
+          "rgba(50, 172, 45, 0.97)"
+        ],
+        "unitSingular": "",
+        "unitPlural": "",
+        "showZoomControl": true,
+        "mouseWheelZoom": false
+      }
+    },
+    {
+      "id": 43,
+      "title": "Attack Types Distribution",
+      "type": "piechart",
+      "targets": [
+        {
+          "expr": "sum(attacks) by (attack_type)",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 12,
+        "w": 12,
+        "h": 8
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "pieType": "pie",
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "displayLabels": [
+          "name"
+        ]
+      }
+    },
+    {
+      "id": 44,
+      "title": "Recent Security Events",
+      "type": "table",
+      "targets": [
+        {
+          "expr": "recent_security_events",
+          "refId": "A",
+          "format": "table"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 20,
+        "w": 24,
+        "h": 8
+      },
+      "options": {
+        "showHeader": true,
+        "sortBy": []
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto"
+          }
+        }
+      }
+    }
+  ],
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "templating": {
+    "list": []
+  },
+  "annotations": {
+    "list": []
+  },
+  "refresh": "5s",
+  "schemaVersion": 36,
+  "version": 1,
+  "links": []
+}

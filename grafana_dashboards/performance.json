@@ -1,0 +1,391 @@
+{
+  "id": null,
+  "uid": "phase3-performance",
+  "title": "Phase 3.0 - Performance Monitoring",
+  "tags": [
+    "phase3",
+    "performance",
+    "monitoring"
+  ],
+  "style": "dark",
+  "timezone": "browser",
+  "panels": [
+    {
+      "id": 28,
+      "title": "Avg Response Time",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "avg(response_time_seconds)",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "palette-classic"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "custom": {
+            "displayMode": "list",
+            "placement": "bottom"
+          }
+        }
+      }
+    },
+    {
+      "id": 29,
+      "title": "Requests/Second",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "rate(requests_total[1m])",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "x": 6,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "palette-classic"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "custom": {
+            "displayMode": "list",
+            "placement": "bottom"
+          }
+        }
+      }
+    },
+    {
+      "id": 30,
+      "title": "Error Rate",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "rate(errors_total[1m]) / rate(requests_total[1m]) * 100",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "palette-classic"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "custom": {
+            "displayMode": "list",
+            "placement": "bottom"
+          }
+        }
+      }
+    },
+    {
+      "id": 31,
+      "title": "Uptime",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "up",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "x": 18,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "palette-classic"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "custom": {
+            "displayMode": "list",
+            "placement": "bottom"
+          }
+        }
+      }
+    },
+    {
+      "id": 32,
+      "title": "Response Time Percentiles",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, response_time_histogram)",
+          "refId": "A"
+        },
+        {
+          "expr": "histogram_quantile(0.95, response_time_histogram)",
+          "refId": "B"
+        },
+        {
+          "expr": "histogram_quantile(0.99, response_time_histogram)",
+          "refId": "C"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 4,
+        "w": 12,
+        "h": 8
+      },
+      "options": {
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "spanNulls": false,
+            "insertNulls": false,
+            "showPoints": "auto",
+            "pointSize": 5
+          }
+        }
+      }
+    },
+    {
+      "id": 33,
+      "title": "System Throughput",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "rate(api_requests_total[5m])",
+          "refId": "A"
+        },
+        {
+          "expr": "rate(workflow_executions_total[5m])",
+          "refId": "B"
+        },
+        {
+          "expr": "rate(database_operations_total[5m])",
+          "refId": "C"
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 4,
+        "w": 12,
+        "h": 8
+      },
+      "options": {
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "spanNulls": false,
+            "insertNulls": false,
+            "showPoints": "auto",
+            "pointSize": 5
+          }
+        }
+      }
+    },
+    {
+      "id": 34,
+      "title": "Resource Utilization",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "avg(cpu_usage_percent)",
+          "refId": "A"
+        },
+        {
+          "expr": "avg(memory_usage_percent)",
+          "refId": "B"
+        },
+        {
+          "expr": "avg(disk_io_utilization)",
+          "refId": "C"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 12,
+        "w": 24,
+        "h": 8
+      },
+      "options": {
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "spanNulls": false,
+            "insertNulls": false,
+            "showPoints": "auto",
+            "pointSize": 5
+          }
+        }
+      }
+    },
+    {
+      "id": 35,
+      "title": "Load Distribution by Component",
+      "type": "table",
+      "targets": [
+        {
+          "expr": "component_load_distribution",
+          "refId": "A",
+          "format": "table"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 20,
+        "w": 12,
+        "h": 6
+      },
+      "options": {
+        "showHeader": true,
+        "sortBy": []
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto"
+          }
+        }
+      }
+    },
+    {
+      "id": 36,
+      "title": "Active Performance Alerts",
+      "type": "table",
+      "targets": [
+        {
+          "expr": "performance_alerts",
+          "refId": "A",
+          "format": "table"
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 20,
+        "w": 12,
+        "h": 6
+      },
+      "options": {
+        "showHeader": true,
+        "sortBy": []
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto"
+          }
+        }
+      }
+    }
+  ],
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "templating": {
+    "list": []
+  },
+  "annotations": {
+    "list": []
+  },
+  "refresh": "5s",
+  "schemaVersion": 36,
+  "version": 1,
+  "links": []
+}

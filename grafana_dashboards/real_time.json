@@ -1,0 +1,299 @@
+{
+  "id": null,
+  "uid": "phase3-real-time",
+  "title": "Phase 3.0 - Real-time Operations",
+  "tags": [
+    "phase3",
+    "realtime",
+    "websocket"
+  ],
+  "style": "dark",
+  "timezone": "browser",
+  "panels": [
+    {
+      "id": 53,
+      "title": "Active WebSocket Connections",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "sum(websocket_connections_active)",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "palette-classic"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "displayMode": "list",
+            "placement": "bottom"
+          }
+        }
+      }
+    },
+    {
+      "id": 54,
+      "title": "Updates/Second",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "rate(realtime_updates_total[1m])",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "x": 6,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "palette-classic"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "custom": {
+            "displayMode": "list",
+            "placement": "bottom"
+          }
+        }
+      }
+    },
+    {
+      "id": 55,
+      "title": "Connection Quality",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "avg(websocket_connection_quality)",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "palette-classic"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "custom": {
+            "displayMode": "list",
+            "placement": "bottom"
+          }
+        }
+      }
+    },
+    {
+      "id": 56,
+      "title": "Avg Message Latency",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "avg(websocket_message_latency)",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "x": 18,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "palette-classic"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "custom": {
+            "displayMode": "list",
+            "placement": "bottom"
+          }
+        }
+      }
+    },
+    {
+      "id": 57,
+      "title": "Real-time Data Flow",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "rate(websocket_messages_sent[1m])",
+          "refId": "A"
+        },
+        {
+          "expr": "rate(websocket_messages_received[1m])",
+          "refId": "B"
+        },
+        {
+          "expr": "rate(websocket_messages_failed[1m])",
+          "refId": "C"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 4,
+        "w": 24,
+        "h": 8
+      },
+      "options": {
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "spanNulls": false,
+            "insertNulls": false,
+            "showPoints": "auto",
+            "pointSize": 5
+          }
+        }
+      }
+    },
+    {
+      "id": 58,
+      "title": "Connections by Type",
+      "type": "piechart",
+      "targets": [
+        {
+          "expr": "sum(websocket_connections) by (connection_type)",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 12,
+        "w": 12,
+        "h": 8
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "pieType": "pie",
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "displayLabels": [
+          "name"
+        ]
+      }
+    },
+    {
+      "id": 59,
+      "title": "Recent Real-time Events",
+      "type": "table",
+      "targets": [
+        {
+          "expr": "recent_realtime_events",
+          "refId": "A",
+          "format": "table"
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 12,
+        "w": 12,
+        "h": 8
+      },
+      "options": {
+        "showHeader": true,
+        "sortBy": []
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto"
+          }
+        }
+      }
+    }
+  ],
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "templating": {
+    "list": []
+  },
+  "annotations": {
+    "list": []
+  },
+  "refresh": "5s",
+  "schemaVersion": 36,
+  "version": 1,
+  "links": []
+}

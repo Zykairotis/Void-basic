@@ -1,0 +1,394 @@
+{
+  "id": null,
+  "uid": "phase3-compliance",
+  "title": "Phase 3.0 - Compliance Monitoring",
+  "tags": [
+    "phase3",
+    "compliance",
+    "gdpr",
+    "hipaa",
+    "sox"
+  ],
+  "style": "dark",
+  "timezone": "browser",
+  "panels": [
+    {
+      "id": 19,
+      "title": "GDPR Compliance",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "gdpr_compliance_score",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "custom": {
+            "displayMode": "list",
+            "placement": "bottom"
+          }
+        }
+      }
+    },
+    {
+      "id": 20,
+      "title": "HIPAA Compliance",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "hipaa_compliance_score",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "x": 6,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "custom": {
+            "displayMode": "list",
+            "placement": "bottom"
+          }
+        }
+      }
+    },
+    {
+      "id": 21,
+      "title": "SOX Compliance",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "sox_compliance_score",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "custom": {
+            "displayMode": "list",
+            "placement": "bottom"
+          }
+        }
+      }
+    },
+    {
+      "id": 22,
+      "title": "Overall Compliance",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "avg(compliance_scores)",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "x": 18,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "custom": {
+            "displayMode": "list",
+            "placement": "bottom"
+          }
+        }
+      }
+    },
+    {
+      "id": 23,
+      "title": "Compliance Violations",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum(gdpr_violations_total)",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(hipaa_violations_total)",
+          "refId": "B"
+        },
+        {
+          "expr": "sum(sox_violations_total)",
+          "refId": "C"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 4,
+        "w": 12,
+        "h": 8
+      },
+      "options": {
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "spanNulls": false,
+            "insertNulls": false,
+            "showPoints": "auto",
+            "pointSize": 5
+          }
+        }
+      }
+    },
+    {
+      "id": 24,
+      "title": "Data Subject Rights Requests",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum(data_access_requests)",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(data_erasure_requests)",
+          "refId": "B"
+        },
+        {
+          "expr": "sum(data_portability_requests)",
+          "refId": "C"
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 4,
+        "w": 12,
+        "h": 8
+      },
+      "options": {
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "spanNulls": false,
+            "insertNulls": false,
+            "showPoints": "auto",
+            "pointSize": 5
+          }
+        }
+      }
+    },
+    {
+      "id": 25,
+      "title": "Audit Trail Completeness",
+      "type": "gauge",
+      "targets": [
+        {
+          "expr": "audit_trail_completeness_percent",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 12,
+        "w": 8,
+        "h": 8
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 26,
+      "title": "Compliance Automation Status",
+      "type": "table",
+      "targets": [
+        {
+          "expr": "compliance_automation_status",
+          "refId": "A",
+          "format": "table"
+        }
+      ],
+      "gridPos": {
+        "x": 8,
+        "y": 12,
+        "w": 16,
+        "h": 8
+      },
+      "options": {
+        "showHeader": true,
+        "sortBy": []
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto"
+          }
+        }
+      }
+    },
+    {
+      "id": 27,
+      "title": "Recent Compliance Events",
+      "type": "table",
+      "targets": [
+        {
+          "expr": "recent_compliance_events",
+          "refId": "A",
+          "format": "table"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 20,
+        "w": 24,
+        "h": 6
+      },
+      "options": {
+        "showHeader": true,
+        "sortBy": []
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto"
+          }
+        }
+      }
+    }
+  ],
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "templating": {
+    "list": []
+  },
+  "annotations": {
+    "list": []
+  },
+  "refresh": "5s",
+  "schemaVersion": 36,
+  "version": 1,
+  "links": []
+}
