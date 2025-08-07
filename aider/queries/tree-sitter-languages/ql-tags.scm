@@ -1,3 +1,8 @@
+; Tree-sitter query file for Ql
+; Language: Ql
+; Version: 1.0
+; Generated: 2025-08-06
+
 (classlessPredicate
   name: (predicateName) @name.definition.function) @definition.function
 

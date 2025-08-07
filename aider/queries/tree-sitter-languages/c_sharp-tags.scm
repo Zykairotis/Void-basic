@@ -1,3 +1,8 @@
+; Tree-sitter query file for C_Sharp
+; Language: C_Sharp
+; Version: 1.0
+; Generated: 2025-08-06
+
 (class_declaration
  name: (identifier) @name.definition.class
  ) @definition.class
@@ -38,7 +43,7 @@
  function:
   (member_access_expression
     name: (identifier) @name.reference.send
- )
+
 ) @reference.send
 
 (namespace_declaration

@@ -1,34 +1,39 @@
+; Tree-sitter query file for Dart
+; Language: Dart
+; Version: 1.0
+; Generated: 2025-08-06
+
 (class_definition
   name: (identifier) @name.definition.class) @definition.class
 
 (method_signature
-  (function_signature)) @definition.method
+  (function_signature) @definition.method
 
 (type_alias
   (type_identifier) @name.definition.type) @definition.type
 
 (method_signature
   (getter_signature
-    name: (identifier) @name.definition.method)) @definition.method
+    name: (identifier) @name.definition.method) @definition.method
 
 (method_signature
   (setter_signature
-    name: (identifier) @name.definition.method)) @definition.method
+    name: (identifier) @name.definition.method) @definition.method
 
 (method_signature
   (function_signature
-  name: (identifier) @name.definition.method)) @definition.method
+  name: (identifier) @name.definition.method) @definition.method
 
 (method_signature
   (factory_constructor_signature
-    (identifier) @name.definition.method)) @definition.method
+    (identifier) @name.definition.method) @definition.method
 
 (method_signature
   (constructor_signature
-  name: (identifier) @name.definition.method)) @definition.method
+  name: (identifier) @name.definition.method) @definition.method
 
 (method_signature
-  (operator_signature)) @definition.method
+  (operator_signature) @definition.method
 
 (method_signature) @definition.method
 
@@ -62,16 +67,16 @@
 		  (identifier)
 		  (unconditional_assignable_selector
 			"."
-			(identifier) @name.reference.call))) @reference.call
+			(identifier) @name.reference.call)) @reference.call
 
 (assignment_expression
   left: (assignable_expression
 		  (identifier)
 		  (conditional_assignable_selector
 			"?."
-			(identifier) @name.reference.call))) @reference.call
+			(identifier) @name.reference.call)) @reference.call
 
-((identifier) @name
+((identifier) @name)
  (selector
     "!"?
     (conditional_assignable_selector
@@ -83,9 +88,8 @@
         (argument)*))?)*
 	(cascade_section
 	  (cascade_selector
-		(identifier)) @name.reference.call
+		(identifier) @name.reference.call
 	  (argument_part
 		(arguments
 		  (argument)*))?)?) @reference.call
-
 

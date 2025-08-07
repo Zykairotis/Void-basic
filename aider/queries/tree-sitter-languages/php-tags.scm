@@ -1,3 +1,8 @@
+; Tree-sitter query file for Php
+; Language: Php
+; Version: 1.0
+; Generated: 2025-08-06
+
 (class_declaration
   name: (name) @name.definition.class) @definition.class
 

@@ -1,3 +1,8 @@
+; Tree-sitter query file for Typescript
+; Language: Typescript
+; Version: 1.0
+; Generated: 2025-08-06
+
 (function_signature
   name: (identifier) @name.definition.function) @definition.function
 

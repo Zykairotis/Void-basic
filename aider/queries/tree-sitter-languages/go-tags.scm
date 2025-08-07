@@ -1,3 +1,8 @@
+; Tree-sitter query file for Go
+; Language: Go
+; Version: 1.0
+; Generated: 2025-08-06
+
 (
   (comment)* @doc
   .
@@ -5,7 +10,6 @@
     name: (identifier) @name.definition.function) @definition.function
   (#strip! @doc "^//\\s*")
   (#set-adjacent! @doc @definition.function)
-)
 
 (
   (comment)* @doc
@@ -14,7 +18,6 @@
     name: (field_identifier) @name.definition.method) @definition.method
   (#strip! @doc "^//\\s*")
   (#set-adjacent! @doc @definition.method)
-)
 
 (call_expression
   function: [

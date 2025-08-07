@@ -1,3 +1,8 @@
+; Tree-sitter query file for Cpp
+; Language: Cpp
+; Version: 1.0
+; Generated: 2025-08-06
+
 (struct_specifier name: (type_identifier) @name.definition.class body:(_)) @definition.class
 
 (declaration type: (union_specifier name: (type_identifier) @name.definition.class)) @definition.class

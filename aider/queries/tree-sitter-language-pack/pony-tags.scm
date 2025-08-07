@@ -9,7 +9,6 @@
 (
   (identifier) @reference.class
   (#match? @reference.class "^_*[A-Z][a-zA-Z0-9_]*$")
-)
 
 (class_definition (identifier) @name.definition.class) @definition.class
 (actor_definition (identifier) @name.definition.class) @definition.class

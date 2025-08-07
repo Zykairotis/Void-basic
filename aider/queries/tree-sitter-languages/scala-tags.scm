@@ -55,11 +55,11 @@
 
 (instance_expression
   (generic_type
-    (type_identifier) @name.reference.interface)) @reference.interface
+    (type_identifier) @name.reference.interface) @reference.interface
 
 (extends_clause
   (type_identifier) @name.reference.class) @reference.class
 
 (extends_clause
   (generic_type
-    (type_identifier) @name.reference.class)) @reference.class
+    (type_identifier) @name.reference.class) @reference.class

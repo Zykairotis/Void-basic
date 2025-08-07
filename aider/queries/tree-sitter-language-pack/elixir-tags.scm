@@ -4,7 +4,7 @@
 (call
   target: (identifier) @ignore
   (arguments (alias) @name.definition.module)
-  (#any-of? @ignore "defmodule" "defprotocol")) @definition.module
+  (#any-of? @ignore "defmodule" "defprotocol") @definition.module
 
 ; * functions/macros
 (call
@@ -18,22 +18,22 @@
       ; function clause with a guard clause
       (binary_operator
         left: (call target: (identifier) @name.definition.function)
-        operator: "when")
-    ])
-  (#any-of? @ignore "def" "defp" "defdelegate" "defguard" "defguardp" "defmacro" "defmacrop" "defn" "defnp")) @definition.function
+        operator: "when"
+    ]
+  (#any-of? @ignore "def" "defp" "defdelegate" "defguard" "defguardp" "defmacro" "defmacrop" "defn" "defnp") @definition.function
 
 ; References
 
 ; ignore calls to kernel/special-forms keywords
 (call
   target: (identifier) @ignore
-  (#any-of? @ignore "def" "defp" "defdelegate" "defguard" "defguardp" "defmacro" "defmacrop" "defn" "defnp" "defmodule" "defprotocol" "defimpl" "defstruct" "defexception" "defoverridable" "alias" "case" "cond" "else" "for" "if" "import" "quote" "raise" "receive" "require" "reraise" "super" "throw" "try" "unless" "unquote" "unquote_splicing" "use" "with"))
+  (#any-of? @ignore "def" "defp" "defdelegate" "defguard" "defguardp" "defmacro" "defmacrop" "defn" "defnp" "defmodule" "defprotocol" "defimpl" "defstruct" "defexception" "defoverridable" "alias" "case" "cond" "else" "for" "if" "import" "quote" "raise" "receive" "require" "reraise" "super" "throw" "try" "unless" "unquote" "unquote_splicing" "use" "with")
 
 ; ignore module attributes
 (unary_operator
   operator: "@"
   operand: (call
-    target: (identifier) @ignore))
+    target: (identifier) @ignore
 
 ; * function call
 (call
@@ -42,7 +42,7 @@
    (identifier) @name.reference.call
    ; remote
    (dot
-     right: (identifier) @name.reference.call)
+     right: (identifier) @name.reference.call
   ]) @reference.call
 
 ; * pipe into function call

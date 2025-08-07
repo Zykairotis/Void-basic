@@ -1,3 +1,8 @@
+; Tree-sitter query file for Elm
+; Language: Elm
+; Version: 1.0
+; Generated: 2025-08-06
+
 (value_declaration (function_declaration_left (lower_case_identifier) @name.definition.function)) @definition.function
 
 (function_call_expr (value_expr (value_qid) @name.reference.function)) @reference.function
@@ -13,7 +18,6 @@
 
 (value_expr (upper_case_qid (upper_case_identifier) @name.reference.union)) @reference.union
 
-
-(module_declaration 
+(module_declaration
     (upper_case_qid (upper_case_identifier)) @name.definition.module
 ) @definition.module

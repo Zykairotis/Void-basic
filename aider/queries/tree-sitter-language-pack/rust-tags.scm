@@ -18,7 +18,7 @@
 
 (declaration_list
     (function_item
-        name: (identifier) @name.definition.method) @definition.method)
+        name: (identifier) @name.definition.method) @definition.method
 
 ; function definitions
 
@@ -45,7 +45,7 @@
 
 (call_expression
     function: (field_expression
-        field: (field_identifier) @name.reference.call)) @reference.call
+        field: (field_identifier) @name.reference.call) @reference.call
 
 (macro_invocation
     macro: (identifier) @name.reference.call) @reference.call

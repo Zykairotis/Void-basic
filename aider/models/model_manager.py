@@ -18,6 +18,31 @@ from contextlib import asynccontextmanager
 import httpx
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 
+# Try to import enhanced providers, fallback to basic ones if not available
+try:
+    from .openai_enhanced_provider import EnhancedOpenAIProvider
+    ENHANCED_OPENAI_AVAILABLE = True
+except ImportError:
+    ENHANCED_OPENAI_AVAILABLE = False
+
+try:
+    from .anthropic_enhanced_provider import EnhancedAnthropicProvider
+    ENHANCED_ANTHROPIC_AVAILABLE = True
+except ImportError:
+    ENHANCED_ANTHROPIC_AVAILABLE = False
+
+try:
+    from .xai_enhanced_provider import EnhancedXAIProvider
+    ENHANCED_XAI_AVAILABLE = True
+except ImportError:
+    ENHANCED_XAI_AVAILABLE = False
+
+try:
+    from .gemini_enhanced_provider import EnhancedGeminiProvider
+    ENHANCED_GEMINI_AVAILABLE = True
+except ImportError:
+    ENHANCED_GEMINI_AVAILABLE = False
+
 # Configure logging
 logger = logging.getLogger(__name__)
 
@@ -423,40 +448,62 @@ class ModelManager:
                     TaskType.TESTING,
                     TaskType.GENERAL
                 ]
+            ),
+            "gemini": ModelConfig(
+                provider="google",
+                model_name="gemini-2.5-pro",
+                api_base="https://generativelanguage.googleapis.com/v1beta",
+                cost_per_1m_input=1.25,
+                cost_per_1m_output=5.00,
+                context_window=1000000,
+                rate_limit_rpm=60,
+                rate_limit_tpm=100000,
+                strengths=["multimodal", "large_context", "code_execution"],
+                supported_tasks=[
+                    TaskType.CODE_GENERATION,
+                    TaskType.ANALYSIS,
+                    TaskType.DOCUMENTATION,
+                    TaskType.GENERAL
+                ]
             )
         }
 
     def _initialize_routing_rules(self) -> Dict[str, List[str]]:
         """Initialize intelligent routing rules based on research"""
         return {
-            # Code generation: Claude first (best quality), Grok fallback (speed)
-            TaskType.CODE_GENERATION.value: ["claude", "grok", "gpt4"],
-            TaskType.CODE_REVIEW.value: ["claude", "gpt4", "grok"],
-            TaskType.CODE_REFACTORING.value: ["claude", "gpt4", "grok"],
+            # Code generation: Claude first (best quality), Gemini (large context), Grok (speed), GPT-4 fallback
+            TaskType.CODE_GENERATION.value: ["claude", "gemini", "grok", "gpt4"],
+            TaskType.CODE_REVIEW.value: ["claude", "gpt4", "gemini", "grok"],
+            TaskType.CODE_REFACTORING.value: ["claude", "gpt4", "gemini", "grok"],
 
-            # Analysis and debugging: GPT-4 first (best reasoning), Claude fallback
-            TaskType.DEBUGGING.value: ["gpt4", "claude", "grok"],
-            TaskType.ANALYSIS.value: ["gpt4", "claude", "grok"],
-            TaskType.PLANNING.value: ["gpt4", "claude", "grok"],
+            # Analysis and debugging: GPT-4 first (best reasoning), Claude fallback, Gemini for large context
+            TaskType.DEBUGGING.value: ["gpt4", "claude", "gemini", "grok"],
+            TaskType.ANALYSIS.value: ["gemini", "gpt4", "claude", "grok"],  # Gemini first for large context analysis
+            TaskType.PLANNING.value: ["gpt4", "claude", "gemini", "grok"],
 
             # Fast tasks: Grok first (speed), others as fallback
-            TaskType.DOCUMENTATION.value: ["grok", "claude", "gpt4"],
-            TaskType.TESTING.value: ["grok", "claude", "gpt4"],
+            TaskType.DOCUMENTATION.value: ["gemini", "grok", "claude", "gpt4"],  # Gemini first for multimodal docs
+            TaskType.TESTING.value: ["grok", "claude", "gemini", "gpt4"],
 
-            # General: All models available
-            TaskType.GENERAL.value: ["claude", "gpt4", "grok"]
+            # General: All models available with Gemini prioritized for multimodal
+            TaskType.GENERAL.value: ["gemini", "claude", "gpt4", "grok"]
         }
 
     async def initialize(self):
         """Initialize all model providers"""
         provider_classes = {
-            "openai": OpenAIProvider,
-            "anthropic": AnthropicProvider,
-            "xai": XAIProvider
+            "openai": EnhancedOpenAIProvider if ENHANCED_OPENAI_AVAILABLE else OpenAIProvider,
+            "anthropic": EnhancedAnthropicProvider if ENHANCED_ANTHROPIC_AVAILABLE else AnthropicProvider,
+            "xai": EnhancedXAIProvider if ENHANCED_XAI_AVAILABLE else XAIProvider,
+            "google": EnhancedGeminiProvider if ENHANCED_GEMINI_AVAILABLE else None
         }
 
         for model_key, config in self.model_configs.items():
-            provider_class = provider_classes[config.provider]
+            provider_class = provider_classes.get(config.provider)
+            if provider_class is None:
+                logger.warning(f"Provider {config.provider} not available, skipping {model_key}")
+                continue
+
             provider = provider_class(config)
 
             try:
@@ -476,26 +523,33 @@ class ModelManager:
         priority = request.priority
 
         # Get routing options for task type
-        routing_options = self.routing_rules.get(task_type, ["claude", "gpt4", "grok"])
+        routing_options = self.routing_rules.get(task_type, ["gemini", "claude", "gpt4", "grok"])
 
         # Apply priority-based adjustments
         if priority == Priority.SPEED:
             # Prefer faster models
-            speed_priority = ["grok", "claude", "gpt4"]
+            speed_priority = ["grok", "gemini", "claude", "gpt4"]
             routing_options = sorted(routing_options,
                                    key=lambda x: speed_priority.index(x) if x in speed_priority else 999)
 
         elif priority == Priority.QUALITY:
             # Prefer highest quality models
-            quality_priority = ["claude", "gpt4", "grok"]
+            quality_priority = ["claude", "gpt4", "gemini", "grok"]
             routing_options = sorted(routing_options,
                                    key=lambda x: quality_priority.index(x) if x in quality_priority else 999)
 
         elif priority == Priority.COST:
-            # Prefer lower cost models
-            cost_priority = ["grok", "claude", "gpt4"]  # Based on pricing research
+            # Prefer lower cost models (Gemini is most cost-effective)
+            cost_priority = ["gemini", "grok", "claude", "gpt4"]
             routing_options = sorted(routing_options,
                                    key=lambda x: cost_priority.index(x) if x in cost_priority else 999)
+
+        # Check for multimodal requirements
+        if hasattr(request, 'images') or hasattr(request, 'files') or hasattr(request, 'videos'):
+            # Prioritize multimodal-capable models
+            multimodal_priority = ["gemini", "gpt4", "claude", "grok"]
+            routing_options = sorted(routing_options,
+                                   key=lambda x: multimodal_priority.index(x) if x in multimodal_priority else 999)
 
         # Filter to available providers
         available_options = [model for model in routing_options if model in self.providers]

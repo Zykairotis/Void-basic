@@ -21,7 +21,7 @@
 ;; do not treat (arg1 arg2) as a call of function arg1
 ;;
 (defun_header
-  lambda_list: (list_lit . [(sym_lit) (package_lit)] @ignore))
+  lambda_list: (list_lit . [(sym_lit) (package_lit)] @ignore)
 
 ;; Similar to the above, but for
 ;;
@@ -30,18 +30,17 @@
 ;; where list literals having symbol as their first element
 ;; are nested inside the lambda list.
 (defun_header
-  lambda_list: (list_lit (list_lit . [(sym_lit) (package_lit)] @ignore)))
+  lambda_list: (list_lit (list_lit . [(sym_lit) (package_lit)] @ignore))
 
 ;;
 ;;      (let ((var ...) (var2 ...)) ...)
 ;;
 ;; - exclude var, var2
 ;; - the same for let*, flet, labels, macrolet, symbol-macrolet
-(list_lit . [(sym_lit) (package_lit)] @name.reference.call
+(list_lit . [(sym_lit) (package_lit)] @name.reference.call)
           . (list_lit (list_lit . [(sym_lit) (package_lit)] @ignore))
-          (#match? @name.reference.call
-                   "(?i)^(cl:)?(let|let\\*|flet|labels|macrolet|symbol-macrolet)$")
-  )
+          (#match? @name.reference.call)
+                   "(?i)^(cl:)?(let|let\\*|flet|labels|macrolet|symbol-macrolet)$"
 
 ;; TODO:
 ;;     - exclude also:
@@ -73,7 +72,6 @@
 ;;       - When implementing, remember the scope rules differences
 ;;         of let vs let*, flet vs labels.
 
-
 ;; Include all other cases - list literal with symbol as the
 ;; first element
 (list_lit . [(sym_lit) (package_lit)] @name.reference.call) @reference.call
@@ -81,12 +79,12 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; classes
 
-(list_lit . [(sym_lit) (package_lit)] @ignore
+(list_lit . [(sym_lit) (package_lit)] @ignore)
           . [(sym_lit) (package_lit)] @name.definition.class
   (#match? @ignore "(?i)^(cl:)?defclass$")
           ) @definition.class
 
-(list_lit . [(sym_lit) (package_lit)] @ignore
+(list_lit . [(sym_lit) (package_lit)] @ignore)
           . (quoting_lit [(sym_lit) (package_lit)] @name.reference.class)
   (#match? @ignore "(?i)^(cl:)?make-instance$")
           ) @reference.class

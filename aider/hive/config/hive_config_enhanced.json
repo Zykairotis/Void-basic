@@ -1,0 +1,666 @@
+{
+  "system": {
+    "version": "2.0.0",
+    "environment": "development",
+    "debug_mode": true,
+    "log_level": "DEBUG",
+    "project_name": "Aider Hive Enhanced",
+    "description": "Enhanced configuration for Aider Multi-Agent Hive Architecture with advanced session management",
+    "coordinator_id": "hive-coordinator-enhanced",
+    "max_concurrent_tasks": 200,
+    "max_queue_size": 20000,
+    "default_timeout": 600.0,
+    "scheduling_strategy": "priority_weighted",
+    "enable_metrics": true,
+    "auto_scaling_enabled": true,
+    "max_total_agents": 50,
+    "session_database_url": "sqlite:///./hive_sessions_enhanced.db",
+    "snapshot_interval": 50,
+    "cleanup_interval": 1800,
+    "max_session_age_hours": 336,
+    "max_inactive_hours": 48,
+    "enable_compression": true,
+    "enable_encryption": false
+  },
+  "agents": {
+    "orchestrator": {
+      "enabled": true,
+      "instances": 2,
+      "auto_scaling": {
+        "enabled": true,
+        "min_instances": 1,
+        "max_instances": 4,
+        "target_cpu": 75.0,
+        "scale_up_threshold": 85.0,
+        "scale_down_threshold": 40.0,
+        "cooldown_period": 300
+      },
+      "configuration": {
+        "max_concurrent_workflows": 20,
+        "default_timeout": 600.0,
+        "analysis_timeout": 45.0,
+        "request_timeout": 1200.0,
+        "enable_workflow_caching": true,
+        "workflow_cache_ttl": 3600,
+        "max_retry_attempts": 5,
+        "retry_backoff_factor": 2.0,
+        "enable_context_awareness": true,
+        "context_window_size": 8000
+      }
+    },
+    "code": {
+      "enabled": true,
+      "instances": 3,
+      "auto_scaling": {
+        "enabled": true,
+        "min_instances": 2,
+        "max_instances": 8,
+        "target_cpu": 80.0,
+        "scale_up_threshold": 90.0,
+        "scale_down_threshold": 35.0
+      },
+      "configuration": {
+        "max_file_size": 2097152,
+        "generation_timeout": 300.0,
+        "enable_testing": true,
+        "enable_validation": true,
+        "enable_code_analysis": true,
+        "enable_security_scanning": true,
+        "supported_languages": [
+          "python",
+          "javascript",
+          "typescript",
+          "java",
+          "cpp",
+          "go",
+          "rust",
+          "csharp",
+          "php",
+          "ruby",
+          "kotlin",
+          "swift"
+        ],
+        "quality_thresholds": {
+          "complexity_max": 15,
+          "function_length_max": 75,
+          "line_length_max": 120,
+          "maintainability_min": 75,
+          "test_coverage_min": 80.0,
+          "duplicate_code_max": 5.0
+        },
+        "code_formatting": {
+          "enable_auto_format": true,
+          "preserve_style": true,
+          "format_on_save": true
+        },
+        "ai_models": {
+          "primary": "gpt-4-turbo",
+          "fallback": "gpt-3.5-turbo",
+          "code_review": "claude-3-opus",
+          "documentation": "gpt-4"
+        }
+      }
+    },
+    "context": {
+      "enabled": true,
+      "instances": 2,
+      "auto_scaling": {
+        "enabled": true,
+        "min_instances": 1,
+        "max_instances": 4,
+        "target_cpu": 70.0
+      },
+      "configuration": {
+        "max_context_entries": 50000,
+        "context_ttl": 7200,
+        "enable_semantic_search": true,
+        "enable_caching": true,
+        "enable_hierarchical_context": true,
+        "auto_update_interval": 180,
+        "cache_ttl": 600,
+        "vector_dimension": 768,
+        "embedding_model": "all-mpnet-base-v2",
+        "similarity_threshold": 0.75,
+        "max_chunk_size": 2000,
+        "chunk_overlap": 200,
+        "enable_entity_extraction": true,
+        "enable_keyword_extraction": true,
+        "context_pruning": {
+          "enabled": true,
+          "max_chunks_per_tier": {
+            "core": 100,
+            "relevant": 500,
+            "ambient": 1000,
+            "archived": 200
+          },
+          "age_threshold_hours": 48
+        },
+        "ignore_patterns": [
+          ".git",
+          "__pycache__",
+          "node_modules",
+          ".venv",
+          ".env",
+          "*.pyc",
+          "*.log",
+          ".DS_Store",
+          "Thumbs.db",
+          "*.tmp"
+        ]
+      }
+    },
+    "git": {
+      "enabled": true,
+      "instances": 1,
+      "auto_scaling": {
+        "enabled": true,
+        "min_instances": 1,
+        "max_instances": 3,
+        "target_cpu": 60.0
+      },
+      "configuration": {
+        "auto_stage_changes": true,
+        "commit_message_style": "conventional",
+        "max_commit_message_length": 100,
+        "enable_conflict_resolution": true,
+        "enable_branch_management": true,
+        "default_branch": "main",
+        "git_timeout": 60.0,
+        "enable_hooks": true,
+        "pre_commit_hooks": ["lint", "test", "security-scan"],
+        "post_commit_hooks": ["notify", "deploy-staging"],
+        "commit_signing": {
+          "enabled": false,
+          "gpg_key_id": null
+        },
+        "branch_protection": {
+          "enabled": true,
+          "require_pull_request": true,
+          "require_review": true,
+          "min_reviewers": 1
+        }
+      }
+    },
+    "quality": {
+      "enabled": true,
+      "instances": 1,
+      "auto_scaling": {
+        "enabled": false,
+        "min_instances": 1,
+        "max_instances": 2
+      },
+      "configuration": {
+        "enable_code_review": true,
+        "enable_security_analysis": true,
+        "enable_performance_analysis": true,
+        "enable_accessibility_check": true,
+        "quality_gates": {
+          "code_coverage": 80.0,
+          "security_score": 85.0,
+          "maintainability": 75.0,
+          "performance_score": 80.0
+        },
+        "tools": {
+          "linting": ["flake8", "eslint", "pylint", "tslint"],
+          "security": ["bandit", "safety", "audit"],
+          "performance": ["profiler", "memory-analyzer"],
+          "testing": ["pytest", "jest", "junit"]
+        }
+      }
+    },
+    "deployment": {
+      "enabled": false,
+      "instances": 1,
+      "configuration": {
+        "enable_ci_cd": true,
+        "deployment_environments": ["development", "staging", "production"],
+        "container_registry": "docker.io",
+        "enable_blue_green": true,
+        "health_check_timeout": 300,
+        "rollback_enabled": true
+      }
+    }
+  },
+  "messaging": {
+    "backend": "redis",
+    "redis_url": "redis://localhost:6379/0",
+    "max_queue_size": 50000,
+    "message_ttl": 1800,
+    "compression": true,
+    "compression_algorithm": "lz4",
+    "encryption": false,
+    "retry_attempts": 5,
+    "retry_delay": 2.0,
+    "retry_backoff": "exponential",
+    "batch_size": 50,
+    "delivery_timeout": 120.0,
+    "dead_letter_queue": {
+      "enabled": true,
+      "max_retries": 3,
+      "retention_hours": 168
+    },
+    "message_routing": {
+      "strategy": "round_robin",
+      "enable_load_balancing": true,
+      "health_check_interval": 30
+    }
+  },
+  "session_management": {
+    "enabled": true,
+    "database_url": "sqlite:///./hive_sessions_enhanced.db",
+    "enable_event_sourcing": true,
+    "enable_snapshots": true,
+    "snapshot_interval": 50,
+    "snapshot_compression": true,
+    "enable_recovery": true,
+    "recovery_strategies": [
+      "snapshot_plus_events",
+      "event_replay",
+      "best_effort",
+      "partial_recovery"
+    ],
+    "session_limits": {
+      "max_concurrent_sessions": 1000,
+      "max_session_duration_hours": 48,
+      "max_inactive_hours": 24,
+      "max_conversation_length": 10000
+    },
+    "cleanup": {
+      "enabled": true,
+      "interval_seconds": 3600,
+      "archive_old_sessions": true,
+      "delete_expired_sessions": true,
+      "retention_days": 30
+    },
+    "session_storage": {
+      "backend": "database",
+      "enable_caching": true,
+      "cache_ttl": 3600,
+      "compression": true
+    }
+  },
+  "context_hierarchy": {
+    "enabled": true,
+    "max_memory_entries": 100000,
+    "vector_dimension": 768,
+    "enable_compression": true,
+    "cache_ttl": 1800,
+    "semantic_search": {
+      "enabled": true,
+      "model": "all-mpnet-base-v2",
+      "similarity_threshold": 0.7,
+      "max_results": 20
+    },
+    "chunking": {
+      "strategy": "semantic",
+      "max_chunk_size": 2000,
+      "overlap_size": 200,
+      "enable_smart_chunking": true
+    },
+    "vector_database": {
+      "backend": "faiss",
+      "index_type": "IVF",
+      "enable_gpu": false,
+      "backup_enabled": true,
+      "backup_interval": 3600
+    },
+    "persistence": {
+      "enabled": true,
+      "database_path": "./context_hierarchy.db",
+      "backup_interval": 7200,
+      "auto_backup": true
+    }
+  },
+  "recovery": {
+    "enabled": true,
+    "max_concurrent_recoveries": 10,
+    "default_timeout_seconds": 600,
+    "enable_consistency_checks": true,
+    "strategies": {
+      "snapshot_only": {
+        "enabled": true,
+        "success_probability": 0.95
+      },
+      "event_replay": {
+        "enabled": true,
+        "success_probability": 0.85
+      },
+      "snapshot_plus_events": {
+        "enabled": true,
+        "success_probability": 0.90
+      },
+      "best_effort": {
+        "enabled": true,
+        "success_probability": 0.92
+      },
+      "partial_recovery": {
+        "enabled": true,
+        "success_probability": 0.98
+      }
+    },
+    "validation": {
+      "enable_integrity_checks": true,
+      "enable_consistency_validation": true,
+      "validation_timeout": 120
+    }
+  },
+  "performance": {
+    "monitoring_enabled": true,
+    "metrics_interval": 30,
+    "health_check_interval": 15,
+    "profiling_enabled": true,
+    "memory_monitoring": true,
+    "cpu_monitoring": true,
+    "disk_monitoring": true,
+    "network_monitoring": true,
+    "performance_targets": {
+      "agent_startup_time": 3.0,
+      "message_latency": 0.05,
+      "context_retrieval": 0.2,
+      "task_throughput": 50.0,
+      "response_time_p95": 1.0,
+      "session_creation_time": 0.5,
+      "recovery_time": 30.0
+    },
+    "alerts": {
+      "enabled": true,
+      "error_rate_threshold": 2.0,
+      "response_time_threshold": 3.0,
+      "memory_usage_threshold": 85.0,
+      "cpu_usage_threshold": 80.0,
+      "disk_usage_threshold": 90.0,
+      "session_failure_threshold": 5.0
+    },
+    "optimization": {
+      "enable_caching": true,
+      "enable_connection_pooling": true,
+      "enable_lazy_loading": true,
+      "enable_compression": true,
+      "batch_processing": true
+    }
+  },
+  "security": {
+    "enable_authentication": true,
+    "authentication_method": "jwt",
+    "jwt_secret_key": "your-secret-key-change-in-production",
+    "jwt_expiry_hours": 24,
+    "api_key_required": true,
+    "rate_limiting": {
+      "enabled": true,
+      "requests_per_minute": 300,
+      "burst_limit": 50,
+      "per_user_limit": 100
+    },
+    "allowed_hosts": ["localhost", "127.0.0.1", "*.yourdomain.com"],
+    "cors_enabled": true,
+    "cors_origins": ["http://localhost:3000", "https://yourdomain.com"],
+    "encryption": {
+      "enable_at_rest": false,
+      "enable_in_transit": true,
+      "algorithm": "AES-256-GCM"
+    },
+    "access_control": {
+      "enable_rbac": true,
+      "roles": ["admin", "developer", "viewer"],
+      "permissions": {
+        "admin": ["*"],
+        "developer": ["read", "write", "execute"],
+        "viewer": ["read"]
+      }
+    },
+    "audit_logging": {
+      "enabled": true,
+      "log_all_requests": true,
+      "log_authentication": true,
+      "retention_days": 90
+    }
+  },
+  "web_interface": {
+    "enabled": true,
+    "host": "0.0.0.0",
+    "port": 8080,
+    "debug": true,
+    "auto_reload": true,
+    "enable_swagger": true,
+    "enable_cors": true,
+    "static_files": {
+      "enabled": true,
+      "directory": "./static",
+      "cache_age": 3600
+    },
+    "websocket": {
+      "enabled": true,
+      "max_connections": 1000,
+      "heartbeat_interval": 30,
+      "message_queue_size": 1000
+    },
+    "ui_features": {
+      "enable_dashboard": true,
+      "enable_session_viewer": true,
+      "enable_agent_monitor": true,
+      "enable_code_diff": true,
+      "enable_chat_interface": true,
+      "enable_metrics_dashboard": true,
+      "enable_debug_tools": true
+    },
+    "themes": {
+      "default": "dark",
+      "available": ["light", "dark", "auto"]
+    }
+  },
+  "features": {
+    "real_time_updates": {
+      "enabled": true,
+      "websocket_port": 8082,
+      "update_interval": 1.0,
+      "max_connections": 500
+    },
+    "documentation_generation": {
+      "enabled": true,
+      "auto_update": true,
+      "formats": ["markdown", "html", "pdf"],
+      "include_code_examples": true
+    },
+    "code_visualization": {
+      "enabled": true,
+      "diff_viewer": true,
+      "syntax_highlighting": true,
+      "line_numbers": true,
+      "minimap": true
+    },
+    "collaborative_features": {
+      "enabled": false,
+      "real_time_editing": false,
+      "shared_sessions": false,
+      "user_presence": false
+    }
+  },
+  "integrations": {
+    "llm_providers": {
+      "openai": {
+        "enabled": true,
+        "api_key_env": "OPENAI_API_KEY",
+        "default_model": "gpt-4-turbo-preview",
+        "fallback_model": "gpt-3.5-turbo",
+        "timeout": 120.0,
+        "max_retries": 3,
+        "rate_limit": 60
+      },
+      "anthropic": {
+        "enabled": true,
+        "api_key_env": "ANTHROPIC_API_KEY",
+        "default_model": "claude-3-opus-20240229",
+        "fallback_model": "claude-3-sonnet-20240229",
+        "timeout": 120.0
+      },
+      "azure_openai": {
+        "enabled": false,
+        "api_key_env": "AZURE_OPENAI_KEY",
+        "endpoint": "https://your-resource.openai.azure.com/",
+        "api_version": "2024-02-01"
+      },
+      "local_models": {
+        "enabled": false,
+        "endpoint": "http://localhost:8000/v1",
+        "models": ["mistral-7b", "codellama-13b"]
+      }
+    },
+    "vector_databases": {
+      "faiss": {
+        "enabled": true,
+        "index_type": "IVF",
+        "nlist": 1024
+      },
+      "pinecone": {
+        "enabled": false,
+        "api_key_env": "PINECONE_API_KEY",
+        "environment": "us-west1-gcp",
+        "index_name": "hive-context"
+      },
+      "weaviate": {
+        "enabled": false,
+        "url": "http://localhost:8080",
+        "api_key_env": "WEAVIATE_API_KEY"
+      },
+      "chroma": {
+        "enabled": false,
+        "persist_directory": "./chroma_db",
+        "collection_name": "hive_context"
+      }
+    },
+    "version_control": {
+      "git": {
+        "enabled": true,
+        "auto_commit": false,
+        "commit_template": "{type}({scope}): {description}",
+        "enable_hooks": true,
+        "remote_sync": false
+      },
+      "github": {
+        "enabled": false,
+        "token_env": "GITHUB_TOKEN",
+        "auto_pr": false,
+        "pr_template": "./github/pull_request_template.md"
+      }
+    },
+    "code_quality": {
+      "linting": {
+        "enabled": true,
+        "tools": ["flake8", "eslint", "pylint", "black", "prettier"],
+        "auto_fix": false
+      },
+      "testing": {
+        "enabled": true,
+        "auto_run": false,
+        "frameworks": ["pytest", "jest", "junit"],
+        "coverage_threshold": 80.0
+      },
+      "security": {
+        "enabled": true,
+        "tools": ["bandit", "safety", "npm-audit"],
+        "fail_on_high": true
+      }
+    },
+    "notification": {
+      "email": {
+        "enabled": false,
+        "smtp_server": "smtp.gmail.com",
+        "smtp_port": 587,
+        "username_env": "EMAIL_USERNAME",
+        "password_env": "EMAIL_PASSWORD"
+      },
+      "slack": {
+        "enabled": false,
+        "webhook_url_env": "SLACK_WEBHOOK_URL",
+        "channel": "#development"
+      },
+      "discord": {
+        "enabled": false,
+        "webhook_url_env": "DISCORD_WEBHOOK_URL"
+      }
+    },
+    "monitoring": {
+      "prometheus": {
+        "enabled": false,
+        "port": 9090,
+        "metrics_path": "/metrics"
+      },
+      "grafana": {
+        "enabled": false,
+        "url": "http://localhost:3000",
+        "dashboard_id": "hive-dashboard"
+      },
+      "datadog": {
+        "enabled": false,
+        "api_key_env": "DATADOG_API_KEY",
+        "tags": ["env:development", "service:hive"]
+      }
+    }
+  },
+  "logging": {
+    "level": "DEBUG",
+    "format": "structured",
+    "output": "console",
+    "enable_colors": true,
+    "file_logging": {
+      "enabled": true,
+      "file_path": "./logs/hive_enhanced.log",
+      "max_size_mb": 500,
+      "backup_count": 10,
+      "rotation": "daily"
+    },
+    "request_logging": {
+      "enabled": true,
+      "include_request_body": true,
+      "include_response_body": false,
+      "exclude_paths": ["/health", "/metrics"]
+    },
+    "structured_logging": {
+      "enabled": true,
+      "format": "json",
+      "include_stack_trace": true,
+      "include_context": true
+    },
+    "log_aggregation": {
+      "enabled": false,
+      "endpoint": "http://localhost:9200",
+      "index_pattern": "hive-logs-*"
+    }
+  },
+  "development": {
+    "hot_reload": true,
+    "debug_endpoints": true,
+    "mock_llm_responses": false,
+    "test_mode": false,
+    "enable_profiling": true,
+    "enable_debugging": true,
+    "auto_restart": true,
+    "development_tools": {
+      "enable_api_docs": true,
+      "enable_interactive_shell": true,
+      "enable_code_playground": true,
+      "enable_agent_inspector": true
+    },
+    "testing": {
+      "auto_test_on_change": false,
+      "coverage_reporting": true,
+      "performance_testing": true,
+      "load_testing": false
+    }
+  },
+  "experimental": {
+    "features": {
+      "multi_modal_support": false,
+      "voice_interface": false,
+      "image_analysis": false,
+      "advanced_reasoning": false,
+      "federated_learning": false
+    },
+    "ai_enhancements": {
+      "self_improving_agents": false,
+      "dynamic_workflow_optimization": false,
+      "predictive_scaling": false,
+      "automatic_bug_detection": false
+    }
+  }
+}

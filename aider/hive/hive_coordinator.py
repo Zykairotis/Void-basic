@@ -36,6 +36,10 @@ from ..agents.context_agent import ContextAgent
 from ..agents.git_agent import GitAgent
 from ..task_management.task_queue import HiveTaskManager
 from ..context.context_store import GlobalContextStore, StorageBackend
+from .session.session_manager import SessionManager, SessionStatus, SessionMetadata
+from .session.session_events import SessionEventStore, EventType
+from .session.context_hierarchy import HierarchicalContextManager
+from .session.session_recovery import SessionRecoveryManager
 
 
 class HiveState(Enum):
@@ -152,6 +156,10 @@ class HiveCoordinator:
         self.task_manager: Optional[HiveTaskManager] = None
         self.context_store: Optional[GlobalContextStore] = None
 
+        # Advanced session management
+        self.session_manager: Optional[SessionManager] = None
+        self.web_interface = None
+
         # Agent management
         self.agents: Dict[str, BaseAgent] = {}
         self.agent_configs: Dict[str, AgentConfig] = {}
@@ -208,6 +216,29 @@ class HiveCoordinator:
             self.state = HiveState.ERROR
             return False
 
+    async def _initialize_session_management(self) -> None:
+        """Initialize the advanced session management system."""
+        try:
+            # Initialize session manager with database URL from config
+            database_url = self.config.system.get('session_database_url', 'sqlite:///./hive_sessions.db')
+
+            self.session_manager = SessionManager(
+                database_url=database_url,
+                context_store=self.context_store,
+                snapshot_interval=self.config.system.get('snapshot_interval', 100),
+                cleanup_interval=self.config.system.get('cleanup_interval', 3600),
+                max_session_age_hours=self.config.system.get('max_session_age_hours', 168),
+                max_inactive_hours=self.config.system.get('max_inactive_hours', 24),
+                enable_compression=self.config.system.get('enable_compression', True)
+            )
+
+            await self.session_manager.initialize()
+            self.logger.debug("Session management system initialized")
+
+        except Exception as e:
+            self.logger.error(f"Failed to initialize session management: {e}")
+            raise
+
     async def start(self) -> bool:
         """Start the hive system."""
         try:
@@ -230,6 +261,9 @@ class HiveCoordinator:
 
             # Start background tasks
             await self._start_background_tasks()
+
+            # Initialize web interface if enabled
+            await self._initialize_web_interface()
 
             # Perform initial health check
             await self._perform_health_check()
@@ -258,6 +292,14 @@ class HiveCoordinator:
 
             # Stop agents
             await self._stop_agents(timeout)
+
+            # Stop session management
+            if self.session_manager:
+                await self.session_manager.stop()
+
+            # Stop web interface
+            if self.web_interface:
+                await self.web_interface.shutdown()
 
             # Stop core components
             if self.task_manager:
@@ -295,6 +337,30 @@ class HiveCoordinator:
             user_id=user_id,
             request_preview=request[:100] + "..." if len(request) > 100 else request
         )
+
+        # Create or get session if session management is enabled
+        session_id = None
+        if self.session_manager and user_id:
+            try:
+                # Try to find an active session for the user
+                active_sessions = await self.session_manager.get_active_sessions(user_id=user_id)
+                if active_sessions:
+                    session_id = active_sessions[0]['id']
+                else:
+                    # Create new session
+                    session_metadata = SessionMetadata(
+                        user_id=user_id,
+                        project_path=self.project_root,
+                        session_type="chat"
+                    )
+                    session_id = await self.session_manager.create_session(
+                        user_id=user_id,
+                        project_path=self.project_root,
+                        metadata=session_metadata,
+                        initial_context=context
+                    )
+            except Exception as e:
+                self.logger.warning(f"Session management error, continuing without session: {e}")
 
         try:
             # Validate system state
@@ -336,6 +402,30 @@ class HiveCoordinator:
             processing_time = time.time() - start_time
             self._update_request_metrics(request_id, processing_time, result.get('status') == 'completed')
 
+            # Update session if available
+            if self.session_manager and session_id:
+                try:
+                    await self.session_manager.add_conversation_message(
+                        session_id=session_id,
+                        message={
+                            'content': request,
+                            'type': 'user_input',
+                            'request_id': request_id
+                        }
+                    )
+
+                    await self.session_manager.add_conversation_message(
+                        session_id=session_id,
+                        message={
+                            'content': str(result),
+                            'type': 'system_response',
+                            'request_id': request_id
+                        },
+                        agent_id="system"
+                    )
+                except Exception as e:
+                    self.logger.warning(f"Failed to update session conversation: {e}")
+
             # Clean up tracking
             if request_id in self.active_requests:
                 del self.active_requests[request_id]
@@ -344,7 +434,8 @@ class HiveCoordinator:
             result.update({
                 'processing_time': processing_time,
                 'coordinator_id': self.coordinator_id,
-                'hive_state': self.state.value
+                'hive_state': self.state.value,
+                'session_id': session_id
             })
 
             self.logger.info(
@@ -427,6 +518,20 @@ class HiveCoordinator:
                 'coordinator_id': self.coordinator_id,
                 'started_at': self.started_at.isoformat() if self.started_at else None
             }
+
+            # Add session management status
+            if self.session_manager:
+                try:
+                    session_metrics = self.session_manager.get_metrics()
+                    status_dict['session_management'] = {
+                        'active_sessions': session_metrics.get('active_sessions_count', 0),
+                        'total_sessions_created': session_metrics.get('sessions_created', 0),
+                        'sessions_restored': session_metrics.get('sessions_restored', 0)
+                    }
+                except Exception as e:
+                    status_dict['session_management'] = {'error': str(e)}
+
+            return status_dict
 
         except Exception as e:
             self.logger.error(f"Failed to get system status: {e}", exc_info=True)
@@ -1114,6 +1219,83 @@ class HiveCoordinator:
 
         except Exception as e:
             self.logger.warning(f"Failed to setup signal handlers: {e}")
+
+    async def _initialize_web_interface(self) -> None:
+        """Initialize the web interface if enabled."""
+        try:
+            features_config = self.config.system.get('features', {})
+            web_config = features_config.get('web_interface', {})
+
+            if web_config.get('enabled', False):
+                from .web.hive_webapp import create_hive_webapp
+
+                self.web_interface = await create_hive_webapp(
+                    hive_coordinator=self,
+                    host=web_config.get('host', 'localhost'),
+                    port=web_config.get('port', 8080),
+                    debug=self.debug_mode
+                )
+
+                self.logger.info(f"Web interface initialized on {web_config.get('host', 'localhost')}:{web_config.get('port', 8080)}")
+
+        except Exception as e:
+            self.logger.error(f"Failed to initialize web interface: {e}")
+            # Don't raise - web interface is optional
+
+    async def create_user_session(
+        self,
+        user_id: str,
+        project_path: Optional[str] = None,
+        session_type: str = "interactive",
+        initial_context: Optional[Dict[str, Any]] = None
+    ) -> Optional[str]:
+        """Create a new user session."""
+        if not self.session_manager:
+            self.logger.warning("Session manager not available")
+            return None
+
+        try:
+            metadata = SessionMetadata(
+                user_id=user_id,
+                project_path=project_path or self.project_root,
+                session_type=session_type
+            )
+
+            session_id = await self.session_manager.create_session(
+                user_id=user_id,
+                project_path=project_path or self.project_root,
+                metadata=metadata,
+                initial_context=initial_context
+            )
+
+            self.logger.info(f"Created session {session_id} for user {user_id}")
+            return session_id
+
+        except Exception as e:
+            self.logger.error(f"Failed to create user session: {e}")
+            return None
+
+    async def get_user_sessions(self, user_id: str) -> List[Dict[str, Any]]:
+        """Get all sessions for a user."""
+        if not self.session_manager:
+            return []
+
+        try:
+            return await self.session_manager.get_active_sessions(user_id=user_id)
+        except Exception as e:
+            self.logger.error(f"Failed to get user sessions: {e}")
+            return []
+
+    async def restore_session(self, session_id: str) -> bool:
+        """Restore a session from storage."""
+        if not self.session_manager:
+            return False
+
+        try:
+            return await self.session_manager.resume_session(session_id)
+        except Exception as e:
+            self.logger.error(f"Failed to restore session {session_id}: {e}")
+            return False
 
     # Context manager support
     async def __aenter__(self):

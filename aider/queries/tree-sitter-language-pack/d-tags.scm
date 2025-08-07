@@ -1,3 +1,8 @@
+; Tree-sitter query file for D
+; Language: D
+; Version: 1.0
+; Generated: 2025-08-06
+
 (module_def (module_declaration (module_fqn) @name.definition.module)) @definition.module
 
 (struct_declaration (struct) . (identifier) @name.definition.class) @definition.class

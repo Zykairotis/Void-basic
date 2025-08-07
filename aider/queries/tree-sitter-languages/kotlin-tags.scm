@@ -16,12 +16,12 @@
     (simple_identifier) @name.reference.call
     (navigation_expression
       (navigation_suffix
-        (simple_identifier) @name.reference.call))
+        (simple_identifier) @name.reference.call
   ]) @reference.call
 
 (delegation_specifier
   [
     (user_type) @name.reference.type
     (constructor_invocation
-      (user_type) @name.reference.type)
+      (user_type) @name.reference.type
   ]) @reference.type

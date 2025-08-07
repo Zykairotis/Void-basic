@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
-Thread-based, killable spinner utility.
+Thread-based, killable spinner utility with enhanced error handling and performance.
 
 Use it like:
 
@@ -13,11 +13,16 @@ Use it like:
     spinner.stop()
 """
 
+import logging
 import sys
 import threading
 import time
+from typing import Optional, List
 
 from rich.console import Console
+
+# Setup module logger
+logger = logging.getLogger(__name__)
 
 
 class Spinner:
@@ -29,14 +34,25 @@ class Spinner:
     """
 
     last_frame_idx = 0  # Class variable to store the last frame index
+    _unicode_support_cache: Optional[bool] = None  # Cache unicode support detection
 
     def __init__(self, text: str, width: int = 7):
+        if not isinstance(text, str):
+            raise TypeError(f"Text must be a string, got {type(text)}")
+
         self.text = text
         self.start_time = time.time()
         self.last_update = 0.0
         self.visible = False
-        self.is_tty = sys.stdout.isatty()
-        self.console = Console()
+        self._cleanup_done = False
+
+        try:
+            self.is_tty = sys.stdout.isatty()
+            self.console = Console()
+        except Exception as e:
+            logger.warning(f"Error initializing console: {e}")
+            self.is_tty = False
+            self.console = Console(force_terminal=False)
 
         # Pre-render the animation frames using pure ASCII so they will
         # always display, even on very limited terminals.
@@ -81,8 +97,14 @@ class Spinner:
         self.last_display_len = 0  # Length of the last spinner line (frame + text)
 
     def _supports_unicode(self) -> bool:
+        # Use cached result if available
+        if Spinner._unicode_support_cache is not None:
+            return Spinner._unicode_support_cache
+
         if not self.is_tty:
+            Spinner._unicode_support_cache = False
             return False
+
         try:
             out = self.unicode_palette
             out += "\b" * len(self.unicode_palette)
@@ -90,37 +112,55 @@ class Spinner:
             out += "\b" * len(self.unicode_palette)
             sys.stdout.write(out)
             sys.stdout.flush()
+            Spinner._unicode_support_cache = True
             return True
         except UnicodeEncodeError:
+            Spinner._unicode_support_cache = False
             return False
-        except Exception:
+        except Exception as e:
+            logger.debug(f"Unicode support detection failed: {e}")
+            Spinner._unicode_support_cache = False
             return False
 
     def _next_frame(self) -> str:
-        frame = self.frames[self.frame_idx]
-        self.frame_idx = (self.frame_idx + 1) % len(self.frames)
-        Spinner.last_frame_idx = self.frame_idx  # Update class variable
-        return frame
+        try:
+            frame = self.frames[self.frame_idx]
+            self.frame_idx = (self.frame_idx + 1) % len(self.frames)
+            Spinner.last_frame_idx = self.frame_idx  # Update class variable
+            return frame
+        except (IndexError, AttributeError) as e:
+            logger.error(f"Error getting next frame: {e}")
+            return "..."  # Fallback frame
 
-    def step(self, text: str = None) -> None:
+    def step(self, text: Optional[str] = None) -> None:
         if text is not None:
+            if not isinstance(text, str):
+                logger.warning(f"Invalid text type: {type(text)}")
+                text = str(text)
             self.text = text
 
-        if not self.is_tty:
+        if not self.is_tty or self._cleanup_done:
             return
 
-        now = time.time()
-        if not self.visible and now - self.start_time >= 0.5:
-            self.visible = True
-            self.last_update = 0.0
-            if self.is_tty:
-                self.console.show_cursor(False)
+        try:
+            now = time.time()
+            if not self.visible and now - self.start_time >= 0.5:
+                self.visible = True
+                self.last_update = 0.0
+                if self.is_tty:
+                    try:
+                        self.console.show_cursor(False)
+                    except Exception as e:
+                        logger.debug(f"Error hiding cursor: {e}")
 
-        if not self.visible or now - self.last_update < 0.1:
+            if not self.visible or now - self.last_update < 0.1:
+                return
+
+            self.last_update = now
+            frame_str = self._next_frame()
+        except Exception as e:
+            logger.error(f"Error in spinner step: {e}")
             return
-
-        self.last_update = now
-        frame_str = self._next_frame()
 
         # Determine the maximum width for the spinner line
         # Subtract 2 as requested, to leave a margin or prevent cursor wrapping issues
@@ -160,61 +200,186 @@ class Spinner:
         sys.stdout.flush()
 
     def end(self) -> None:
-        if self.visible and self.is_tty:
-            clear_len = self.last_display_len  # Use the length of the last displayed content
-            sys.stdout.write("\r" + " " * clear_len + "\r")
-            sys.stdout.flush()
-            self.console.show_cursor(True)
-        self.visible = False
+        if self._cleanup_done:
+            return
+
+        try:
+            if self.visible and self.is_tty:
+                clear_len = getattr(self, 'last_display_len', 0)
+                if clear_len > 0:
+                    try:
+                        sys.stdout.write("\r" + " " * clear_len + "\r")
+                        sys.stdout.flush()
+                    except Exception as e:
+                        logger.debug(f"Error clearing spinner output: {e}")
+
+                try:
+                    self.console.show_cursor(True)
+                except Exception as e:
+                    logger.debug(f"Error showing cursor: {e}")
+
+            self.visible = False
+            self._cleanup_done = True
+
+        except Exception as e:
+            logger.error(f"Error ending spinner: {e}")
+            # Ensure cleanup is marked as done even if error occurs
+            self._cleanup_done = True
 
 
 class WaitingSpinner:
-    """Background spinner that can be started/stopped safely."""
+    """Background spinner that can be started/stopped safely with enhanced error handling."""
 
     def __init__(self, text: str = "Waiting for LLM", delay: float = 0.15):
-        self.spinner = Spinner(text)
-        self.delay = delay
-        self._stop_event = threading.Event()
-        self._thread = threading.Thread(target=self._spin, daemon=True)
+        if not isinstance(text, str):
+            raise TypeError(f"Text must be a string, got {type(text)}")
+        if not isinstance(delay, (int, float)) or delay <= 0:
+            raise ValueError(f"Delay must be a positive number, got {delay}")
 
-    def _spin(self):
-        while not self._stop_event.is_set():
-            self.spinner.step()
-            time.sleep(self.delay)
-        self.spinner.end()
+        try:
+            self.spinner = Spinner(text)
+            self.delay = max(0.05, min(1.0, delay))  # Clamp delay to reasonable range
+            self._stop_event = threading.Event()
+            self._thread: Optional[threading.Thread] = None
+            self._started = False
+            self._lock = threading.Lock()  # For thread safety
 
-    def start(self):
-        """Start the spinner in a background thread."""
-        if not self._thread.is_alive():
-            self._thread.start()
+        except Exception as e:
+            logger.error(f"Error initializing WaitingSpinner: {e}")
+            raise
 
-    def stop(self):
+    def _spin(self) -> None:
+        """Main spinner loop with enhanced error handling."""
+        try:
+            while not self._stop_event.is_set():
+                try:
+                    self.spinner.step()
+                except Exception as e:
+                    logger.debug(f"Error in spinner step: {e}")
+                    # Continue spinning even if step fails
+
+                try:
+                    self._stop_event.wait(timeout=self.delay)
+                except Exception as e:
+                    logger.debug(f"Error in spinner sleep: {e}")
+                    time.sleep(self.delay)  # Fallback to regular sleep
+
+        except Exception as e:
+            logger.error(f"Error in spinner thread: {e}")
+        finally:
+            try:
+                self.spinner.end()
+            except Exception as e:
+                logger.debug(f"Error ending spinner in thread: {e}")
+
+    def start(self) -> None:
+        """Start the spinner in a background thread with thread safety."""
+        with self._lock:
+            if self._started:
+                logger.debug("Spinner already started")
+                return
+
+            try:
+                # Create new thread if needed
+                if self._thread is None or not self._thread.is_alive():
+                    self._stop_event.clear()
+                    self._thread = threading.Thread(target=self._spin, daemon=True)
+
+                if not self._thread.is_alive():
+                    self._thread.start()
+                    self._started = True
+                    logger.debug("Spinner started successfully")
+
+            except Exception as e:
+                logger.error(f"Error starting spinner: {e}")
+                self._started = False
+
+    def stop(self) -> None:
         """Request the spinner to stop and wait briefly for the thread to exit."""
-        self._stop_event.set()
-        if self._thread.is_alive():
-            self._thread.join(timeout=self.delay)
-        self.spinner.end()
+        with self._lock:
+            if not self._started:
+                return
+
+            try:
+                self._stop_event.set()
+
+                if self._thread and self._thread.is_alive():
+                    # Wait for thread to finish with reasonable timeout
+                    join_timeout = max(self.delay * 2, 0.5)
+                    self._thread.join(timeout=join_timeout)
+
+                    if self._thread.is_alive():
+                        logger.warning("Spinner thread did not stop gracefully")
+
+                # Ensure spinner is properly ended
+                try:
+                    self.spinner.end()
+                except Exception as e:
+                    logger.debug(f"Error ending spinner: {e}")
+
+                self._started = False
+                logger.debug("Spinner stopped successfully")
+
+            except Exception as e:
+                logger.error(f"Error stopping spinner: {e}")
+                # Ensure we're marked as stopped even if cleanup fails
+                self._started = False
 
     # Allow use as a context-manager
-    def __enter__(self):
-        self.start()
-        return self
+    def __enter__(self) -> 'WaitingSpinner':
+        """Enter context manager and start spinner."""
+        try:
+            self.start()
+            return self
+        except Exception as e:
+            logger.error(f"Error entering spinner context: {e}")
+            # Try to clean up if start failed
+            try:
+                self.stop()
+            except Exception:
+                pass
+            raise
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.stop()
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
+        """Exit context manager and stop spinner."""
+        try:
+            self.stop()
+        except Exception as e:
+            logger.error(f"Error exiting spinner context: {e}")
+            # Don't raise exception in __exit__ unless it's critical
 
 
 def main():
-    spinner = Spinner("Running spinner...")
+    """Main function with enhanced error handling and user feedback."""
+    spinner = None
     try:
-        for _ in range(100):
-            time.sleep(0.15)
-            spinner.step()
+        spinner = Spinner("Running spinner...")
+        logger.info("Starting spinner demo")
+
+        for i in range(100):
+            try:
+                time.sleep(0.15)
+                spinner.step(f"Running spinner... {i+1}/100")
+            except KeyboardInterrupt:
+                print("\nInterrupted by user.")
+                break
+            except Exception as e:
+                logger.warning(f"Error in spinner step {i}: {e}")
+                continue
+
         print("Success!")
+
     except KeyboardInterrupt:
         print("\nInterrupted by user.")
+    except Exception as e:
+        logger.error(f"Error in spinner demo: {e}")
+        print(f"Error: {e}")
     finally:
-        spinner.end()
+        if spinner:
+            try:
+                spinner.end()
+            except Exception as e:
+                logger.error(f"Error ending spinner: {e}")
 
 
 if __name__ == "__main__":

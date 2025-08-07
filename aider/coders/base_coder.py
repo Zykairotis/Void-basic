@@ -61,13 +61,61 @@ class UnknownEditFormat(ValueError):
             f"Unknown edit format {edit_format}. Valid formats are: {', '.join(valid_formats)}"
         )
 
+        # Enhanced error context for better debugging
+        self.error_context = {
+            "requested_format": edit_format,
+            "available_formats": valid_formats,
+            "suggestions": [
+                f"Use one of: {', '.join(valid_formats[:3])}{'...' if len(valid_formats) > 3 else ''}",
+                "Check documentation for format-specific requirements"
+            ]
+        }
+
 
 class MissingAPIKeyError(ValueError):
-    pass
+    def __init__(self, service="AI model", env_var=None, message=None):
+        self.service = service
+        self.env_var = env_var
+
+        if message:
+            super().__init__(message)
+        else:
+            msg = f"Missing API key for {service}"
+            if env_var:
+                msg += f". Set the {env_var} environment variable."
+            super().__init__(msg)
+
+        # Enhanced error context
+        self.error_context = {
+            "service": service,
+            "env_var": env_var,
+            "suggestions": [
+                f"Set up API credentials for {service}",
+                f"Set the {env_var} environment variable" if env_var else "Check environment variables"
+            ]
+        }
 
 
 class FinishReasonLength(Exception):
-    pass
+    def __init__(self, model_name=None, content_length=None):
+        self.model_name = model_name
+        self.content_length = content_length
+
+        msg = "AI response was truncated due to length limits"
+        if model_name:
+            msg += f" in model {model_name}"
+        super().__init__(msg)
+
+        # Enhanced error context
+        self.error_context = {
+            "model": model_name,
+            "content_length": content_length,
+            "suggestions": [
+                "Break the request into smaller parts",
+                "Use a model with higher output limits",
+                "Simplify the complexity of the requested changes"
+            ]
+        }
 
 
 def wrap_fence(name):
@@ -1463,6 +1511,11 @@ class Coder:
 
                     if ex_info.name == "ContextWindowExceededError":
                         exhausted = True
+                        # Enhanced context window handling
+                        if hasattr(self, 'io') and hasattr(self.io, 'tool_warning'):
+                            self.io.tool_warning(
+                                "Context window exceeded. Consider reducing file count or using summarization."
+                            )
                         break
 
                     should_retry = ex_info.retry
@@ -1506,7 +1559,17 @@ class Coder:
                 except Exception as err:
                     self.mdstream = None
                     lines = traceback.format_exception(type(err), err, err.__traceback__)
-                    self.io.tool_warning("".join(lines))
+
+                    # Enhanced error reporting
+                    error_msg = f"Error during message processing: {err}"
+                    if hasattr(err, 'error_context'):
+                        # Use enhanced error context if available
+                        if hasattr(self.io, 'tool_error_enhanced'):
+                            self.io.tool_error_enhanced(err)
+                        else:
+                            self.io.tool_error(error_msg)
+                    else:
+                        self.io.tool_error("".join(lines))
                     self.io.tool_error(str(err))
                     self.event("message_send_exception", exception=str(err))
                     return

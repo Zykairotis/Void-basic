@@ -30,8 +30,14 @@ from .model_manager import (
     RateLimiter,
 )
 
+# Enhanced Providers with Advanced Capabilities
+from .openai_enhanced_provider import EnhancedOpenAIProvider
+from .anthropic_enhanced_provider import EnhancedAnthropicProvider
+from .xai_enhanced_provider import EnhancedXAIProvider
+from .gemini_enhanced_provider import EnhancedGeminiProvider
+
 # Version info
-__version__ = "2.1.0"
+__version__ = "3.0.0"
 __author__ = "Aider AI Team"
 
 # Default exports for common usage
@@ -58,6 +64,12 @@ __all__ = [
     "AnthropicProvider",
     "XAIProvider",
     "RateLimiter",
+
+    # Enhanced Providers with Advanced Capabilities
+    "EnhancedOpenAIProvider",
+    "EnhancedAnthropicProvider",
+    "EnhancedXAIProvider",
+    "EnhancedGeminiProvider",
 ]
 
 # Module-level documentation
@@ -98,5 +110,27 @@ Usage Examples:
     manager = await get_model_manager()
     health = await manager.health_check()
     metrics = manager.get_performance_metrics()
+    ```
+
+4. Enhanced Provider Features:
+    ```python
+    from aider.models import EnhancedOpenAIProvider, EnhancedAnthropicProvider,
+                            EnhancedXAIProvider, EnhancedGeminiProvider
+
+    # OpenAI with function calling and tools
+    openai_provider = EnhancedOpenAIProvider(config)
+    await openai_provider.initialize()
+
+    # Anthropic with computer use and autonomous sessions
+    claude_provider = EnhancedAnthropicProvider(config)
+    await claude_provider.initialize()
+
+    # xAI with live search and multi-agent
+    grok_provider = EnhancedXAIProvider(config)
+    await grok_provider.initialize()
+
+    # Google Gemini with multimodal and code execution
+    gemini_provider = EnhancedGeminiProvider(config)
+    await gemini_provider.initialize()
     ```
 """

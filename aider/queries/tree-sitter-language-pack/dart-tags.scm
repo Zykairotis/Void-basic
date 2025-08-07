@@ -1,35 +1,39 @@
+; Tree-sitter query file for Dart
+; Language: Dart
+; Version: 1.0
+; Generated: 2025-08-06
 
 (class_definition
   name: (identifier) @name.definition.class) @definition.class
 
 (method_signature
-  (function_signature)) @definition.method
+  (function_signature) @definition.method
 
 (type_alias
   (type_identifier) @name.definition.type) @definition.type
 
 (method_signature
 (getter_signature
-  name: (identifier) @name.definition.method)) @definition.method
+  name: (identifier) @name.definition.method) @definition.method
 
 (method_signature
 (setter_signature
-  name: (identifier) @name.definition.method)) @definition.method 
+  name: (identifier) @name.definition.method) @definition.method
 
 (method_signature
   (function_signature
-  name: (identifier) @name.definition.method)) @definition.method
+  name: (identifier) @name.definition.method) @definition.method
 
 (method_signature
   (factory_constructor_signature
-    (identifier) @name.definition.method)) @definition.method
+    (identifier) @name.definition.method) @definition.method
 
 (method_signature
   (constructor_signature
-  name: (identifier) @name.definition.method)) @definition.method
+  name: (identifier) @name.definition.method) @definition.method
 
 (method_signature
-  (operator_signature)) @definition.method
+  (operator_signature) @definition.method
 
 (method_signature) @definition.method
 
@@ -40,7 +44,6 @@
 (extension_declaration
   name: (identifier) @name.definition.extension) @definition.extension
 
-
 (new_expression
   (type_identifier) @name.reference.class) @reference.class
 
@@ -48,32 +51,32 @@
   name: (identifier) @name.definition.enum) @definition.enum
 
 (function_signature
-  name: (identifier) @name.definition.function) @definition.function 
+  name: (identifier) @name.definition.function) @definition.function
 
 (initialized_variable_definition
   name: (identifier)
-  value: (identifier) @name.reference.class 
+  value: (identifier) @name.reference.class
   value: (selector
 	"!"?
-	(argument_part 
+	(argument_part
 	  (arguments
 	    (argument)*))?)?) @reference.class
 
 (assignment_expression
-  left: (assignable_expression 
+  left: (assignable_expression
 		  (identifier)
 		  (unconditional_assignable_selector
 			"."
-			(identifier) @name.reference.send))) @reference.call
+			(identifier) @name.reference.send)) @reference.call
 
 (assignment_expression
-  left: (assignable_expression 
+  left: (assignable_expression
 		  (identifier)
 		  (conditional_assignable_selector
 			"?."
-			(identifier) @name.reference.send))) @reference.call
+			(identifier) @name.reference.send)) @reference.call
 
-((identifier) @name.reference.send
+((identifier) @name.reference.send)
  (selector
     "!"?
     (conditional_assignable_selector
@@ -85,8 +88,8 @@
         (argument)*))?)*
 	(cascade_section
 	  (cascade_selector
-		(identifier)) @name.reference.send 
-	  (argument_part 
+		(identifier) @name.reference.send
+	  (argument_part
 		(arguments
 		  (argument)*))?)?) @reference.call
 
