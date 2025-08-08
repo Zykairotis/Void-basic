@@ -31,6 +31,44 @@ src="https://img.shields.io/badge/⚡%20Enterprise-100%25%20Ready-3498db?style=f
 </text>
 
 <old_text line=28>
+## 📁 **Project Structure**
+
+The project has been organized into a clean, professional structure for better maintainability:
+
+```
+Void-basic/
+├── aider/                     # Core application code
+│   ├── agents/               # AI agent implementations
+│   ├── cli/                  # Command-line interface
+│   ├── coders/               # Code generation and editing
+│   ├── context/              # Context management
+│   ├── hive/                 # Hive coordination system
+│   ├── models/               # AI model management
+│   ├── queries/              # Query processing
+│   ├── resources/            # Static resources
+│   └── task_management/      # Task orchestration
+├── tests/                    # All test files (organized)
+│   ├── agents/              # Agent-specific tests
+│   ├── basic/               # Basic functionality tests
+│   ├── browser/             # Browser automation tests
+│   ├── fixtures/            # Test fixtures and data
+│   ├── help/                # Help system tests
+│   ├── integration/         # Integration tests
+│   ├── models/              # Model integration tests
+│   ├── scrape/              # Web scraping tests
+│   └── workflows/           # Workflow system tests
+├── demos/                   # Demo scripts and examples
+├── results/                 # Test results and outputs
+├── data/                    # Persistent data (databases, cache)
+├── config/                  # Configuration files
+├── requirements/            # Dependency management
+├── docs/                    # Documentation
+├── scripts/                 # Utility scripts
+├── benchmark/               # Performance benchmarks
+├── docker/                  # Docker configurations
+└── phase_3_0/              # Phase 3.0 enterprise features
+```
+
 ## 🎉 **Phase 1 Complete: Multi-Agent Infrastructure Operational**
 
 We've successfully built and deployed a fully functional **multi-agent AI coding assistant** that coordinates specialized agents to handle complex development workflows autonomously.

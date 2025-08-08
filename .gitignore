@@ -20,3 +20,27 @@ tmp.benchmarks/
 .env
 .env.local
 .env.*.local
+
+# Data directory - exclude databases and cache files
+data/*.db
+data/*.sqlite
+data/*.sqlite3
+data/cache/
+data/temp/
+
+# Results directory - test results can be regenerated
+results/*.json
+results/*.xml
+results/*.html
+results/temp/
+results/cache/
+
+# Demo temporary files
+demos/temp/
+demos/*.log
+demos/*.tmp
+
+# Config - exclude local/personal config files
+config/.env*
+config/local.*
+config/personal.*

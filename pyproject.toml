@@ -23,6 +23,7 @@ Homepage = "https://github.com/Aider-AI/aider"
 
 [project.scripts]
 aider = "aider.main:main"
+aider-tui = "aider.tui.app:main"
 
 [tool.setuptools.dynamic]
 dependencies = { file = "requirements.txt" }
