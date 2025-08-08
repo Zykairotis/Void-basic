@@ -30,7 +30,7 @@ from aider.format_settings import format_settings, scrub_sensitive_info
 from aider.history import ChatSummary
 from aider.io import InputOutput
 from aider.llm import litellm  # noqa: F401; properly init litellm on launch
-from aider.models import ModelSettings
+from aider import models
 from aider.onboarding import offer_openrouter_oauth, select_default_model
 from aider.repo import ANY_GIT_ERROR, GitRepo
 from aider.report import report_uncaught_exceptions
@@ -900,7 +900,7 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
         io.tool_output(json.dumps(main_model.info, indent=4))
 
         io.tool_output("Model settings:")
-        for attr in sorted(fields(ModelSettings), key=lambda x: x.name):
+        for attr in sorted(fields(models.ModelSettings), key=lambda x: x.name):
             val = getattr(main_model, attr.name)
             val = json.dumps(val, indent=4)
             io.tool_output(f"{attr.name}: {val}")

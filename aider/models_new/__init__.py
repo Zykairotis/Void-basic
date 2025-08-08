@@ -36,6 +36,23 @@ from .anthropic_enhanced_provider import EnhancedAnthropicProvider
 from .xai_enhanced_provider import EnhancedXAIProvider
 from .gemini_enhanced_provider import EnhancedGeminiProvider
 
+# Backward compatibility - import from old models.py file
+import sys
+import os
+sys.path.insert(0, os.path.dirname(__file__))
+try:
+    from ..models import Model, register_models, register_litellm_models
+except ImportError:
+    # If circular import, import directly
+    import importlib.util
+    models_file = os.path.join(os.path.dirname(__file__), '..', 'models.py')
+    spec = importlib.util.spec_from_file_location("old_models", models_file)
+    old_models = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(old_models)
+    Model = old_models.Model
+    register_models = old_models.register_models
+    register_litellm_models = old_models.register_litellm_models
+
 # Version info
 __version__ = "3.0.0"
 __author__ = "Aider AI Team"
@@ -70,6 +87,11 @@ __all__ = [
     "EnhancedAnthropicProvider",
     "EnhancedXAIProvider",
     "EnhancedGeminiProvider",
+
+    # Backward compatibility
+    "Model",
+    "register_models",
+    "register_litellm_models",
 ]
 
 # Module-level documentation

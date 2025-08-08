@@ -5,7 +5,8 @@ from typing import Any, Dict, Optional
 
 from textual.app import App, ComposeResult
 from textual.reactive import reactive
-from textual.widgets import Header, Footer, Input, Button, DataTable, TextLog, Static
+from textual.widgets import Header, Footer, Input, Button, DataTable, RichLog, Static
+from rich.text import Text
 from textual.containers import Container, Horizontal
 
 from ..hive import create_hive_coordinator, HiveCoordinator
@@ -50,7 +51,7 @@ class HiveTUI(App):
                 agents.cursor_type = "row"
                 yield agents
             with Container(id="right"):
-                yield TextLog(id="log", highlight=True, wrap=True)
+                yield RichLog(id="log")
 
         yield Footer()
 
@@ -141,9 +142,9 @@ class HiveTUI(App):
             await self._update_status_once()
 
     def _log(self, message: str, *, error: bool = False) -> None:
-        log = self.query_one(TextLog)
+        log = self.query_one(RichLog)
         if error:
-            log.write(f"[red]{message}[/red]")
+            log.write(Text(message, style="red"))
         else:
             log.write(message)
 

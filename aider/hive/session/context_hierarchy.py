@@ -32,9 +32,14 @@ from concurrent.futures import ThreadPoolExecutor
 
 import numpy as np
 import structlog
-from sentence_transformers import SentenceTransformer
+try:
+    from sentence_transformers import SentenceTransformer
+    SENTENCE_TRANSFORMERS_AVAILABLE = True
+except ImportError:
+    SentenceTransformer = None
+    SENTENCE_TRANSFORMERS_AVAILABLE = False
 
-from ..context.context_store import GlobalContextStore, ContextEntry
+from ...context.context_store import GlobalContextStore, ContextEntry
 from .session_events import EventType
 
 
@@ -397,6 +402,10 @@ class VectorSearchEngine:
 
     async def initialize(self) -> None:
         """Initialize the embedding model."""
+        if not SENTENCE_TRANSFORMERS_AVAILABLE:
+            self.logger.warning("sentence_transformers not available - vector search disabled")
+            return
+
         try:
             loop = asyncio.get_event_loop()
             self.model = await loop.run_in_executor(
@@ -412,8 +421,15 @@ class VectorSearchEngine:
     async def add_chunk(self, chunk: ContextChunk) -> bool:
         """Add a chunk to the vector index."""
         try:
+            if not SENTENCE_TRANSFORMERS_AVAILABLE:
+                self.logger.warning("Vector search not available - sentence_transformers not installed")
+                return False
+
             if self.model is None:
                 await self.initialize()
+
+            if self.model is None:
+                return False
 
             # Generate embedding
             loop = asyncio.get_event_loop()
@@ -452,6 +468,10 @@ class VectorSearchEngine:
     ) -> List[Tuple[str, float]]:
         """Search for similar chunks using vector similarity."""
         try:
+            if not SENTENCE_TRANSFORMERS_AVAILABLE:
+                self.logger.warning("Vector search not available - sentence_transformers not installed")
+                return []
+
             if not self.vectors or self.model is None:
                 return []
 

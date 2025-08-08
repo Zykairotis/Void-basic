@@ -36,13 +36,11 @@ from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy import event
 
-from ..context.context_store import GlobalContextStore, ContextEntry
+from ...context.context_store import GlobalContextStore, ContextEntry
+from .models import Base, SessionModel, SessionEventModel, SessionSnapshotModel
 from .session_events import SessionEvent, EventType, SessionEventStore
 from .context_hierarchy import HierarchicalContextManager
 from .session_recovery import SessionRecoveryManager
-
-
-Base = declarative_base()
 
 
 class SessionStatus(Enum):
@@ -104,59 +102,6 @@ class SessionStatistics:
     memory_usage_peak: float = 0.0
 
 
-class SessionModel(Base):
-    """Database model for sessions."""
-    __tablename__ = 'sessions'
-
-    id = Column(String, primary_key=True)
-    user_id = Column(String, nullable=False, index=True)
-    status = Column(String, nullable=False, index=True)
-    priority = Column(Integer, nullable=False, default=2)
-    created_at = Column(DateTime, nullable=False, index=True)
-    updated_at = Column(DateTime, nullable=False)
-    expires_at = Column(DateTime, nullable=True, index=True)
-    last_activity = Column(DateTime, nullable=True, index=True)
-
-    # JSON fields for flexible data
-    metadata = Column(Text)  # JSON serialized SessionMetadata
-    statistics = Column(Text)  # JSON serialized SessionStatistics
-    current_state = Column(Text)  # JSON serialized current state
-
-    # Project and type information
-    project_path = Column(String, nullable=False, index=True)
-    session_type = Column(String, nullable=False, default="default")
-    tags = Column(Text)  # JSON array of tags
-
-
-class SessionEventModel(Base):
-    """Database model for session events."""
-    __tablename__ = 'session_events'
-
-    id = Column(String, primary_key=True)
-    session_id = Column(String, nullable=False, index=True)
-    event_type = Column(String, nullable=False, index=True)
-    sequence_number = Column(Integer, nullable=False)
-    timestamp = Column(DateTime, nullable=False, index=True)
-
-    # Event data
-    event_data = Column(Text)  # JSON serialized event data
-    agent_id = Column(String, nullable=True, index=True)
-    correlation_id = Column(String, nullable=True, index=True)
-
-
-class SessionSnapshotModel(Base):
-    """Database model for session snapshots."""
-    __tablename__ = 'session_snapshots'
-
-    id = Column(String, primary_key=True)
-    session_id = Column(String, nullable=False, index=True)
-    sequence_number = Column(Integer, nullable=False)
-    timestamp = Column(DateTime, nullable=False, index=True)
-
-    # Snapshot data - using binary for large states
-    snapshot_data = Column(LargeBinary)  # Pickled SessionSnapshot
-    checkpoint_reason = Column(String, nullable=False)
-    size_bytes = Column(Integer, nullable=False)
 
 
 class SessionManager:

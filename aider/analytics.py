@@ -13,7 +13,7 @@ from posthog import Posthog
 
 from aider import __version__
 from aider.dump import dump  # noqa: F401
-from aider.models import model_info_manager
+from aider import models
 
 PERCENT = 10
 
@@ -327,7 +327,7 @@ class Analytics:
             if not model_name:
                 return None
 
-            info = model_info_manager.get_model_from_cached_json_db(model_name)
+            info = models.model_info_manager.get_model_from_cached_json_db(model_name)
             if info:
                 return model_name
             elif "/" in model_name:

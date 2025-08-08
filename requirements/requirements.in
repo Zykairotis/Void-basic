@@ -11,6 +11,7 @@ grep_ast
 packaging
 sounddevice
 soundfile
+structlog
 beautifulsoup4
 PyYAML
 diff-match-patch
@@ -31,6 +32,10 @@ shtab
 oslex
 google-generativeai
 textual
+tenacity
+pyautogui
+sqlalchemy
+sentence_transformers
 
 # The proper dependency is networkx[default], but this brings
 # in matplotlib and a bunch of other deps

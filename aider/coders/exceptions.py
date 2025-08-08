@@ -6,7 +6,7 @@ better error reporting, validation, and user feedback throughout the
 coding system.
 """
 
-from typing import Any, Dict, List, TypeAlias, override
+from typing import Any, Dict, List, Optional, TypeAlias, Union, override
 from dataclasses import dataclass
 from pathlib import Path
 

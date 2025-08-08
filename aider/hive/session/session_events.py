@@ -29,7 +29,7 @@ import structlog
 from sqlalchemy import and_, or_, desc, asc
 from sqlalchemy.orm import Session
 
-from .session_manager import SessionEventModel
+from .models import SessionEventModel
 
 
 class EventType(Enum):

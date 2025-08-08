@@ -36,7 +36,7 @@ from aider.history import ChatSummary
 from aider.io import ConfirmGroup, InputOutput
 from aider.linter import Linter
 from aider.llm import litellm
-from aider.models import RETRY_TIMEOUT
+from aider import models
 from aider.reasoning_tags import (
     REASONING_TAG,
     format_reasoning_content,
@@ -1521,7 +1521,7 @@ class Coder:
                     should_retry = ex_info.retry
                     if should_retry:
                         retry_delay *= 2
-                        if retry_delay > RETRY_TIMEOUT:
+                        if retry_delay > models.RETRY_TIMEOUT:
                             should_retry = False
 
                     if not should_retry:
